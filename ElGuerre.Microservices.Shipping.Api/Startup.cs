@@ -65,7 +65,7 @@ namespace ElGuerre.Microservices.Shipping.Api
 			app.UseSwagger()
 				.UseSwaggerUI(c =>
 				{
-					c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mutualidad.Prestaciones.Modulo1 v1.0.0");
+					c.SwaggerEndpoint("/swagger/v1/swagger.json", "ElGuerre.Microservices.Shipping v1.0.0");
 				});
 
 			app.UseHttpsRedirection();
@@ -211,8 +211,8 @@ namespace ElGuerre.Microservices.Shipping.Api
 				options.SwaggerDoc("v1", new Info
 				{
 					Version = "v1.0.0",
-					Title = "Prestaciones.Modulo1 API",
-					Description = "API para exponer la lógica del módulo de Prestaciones.Modulo1",
+					Title = "ElGuerre.Microservices.Sales API",
+					Description = "API to expose logic for ElGuerre.Microservices.Sales",
 					TermsOfService = ""
 				});
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
