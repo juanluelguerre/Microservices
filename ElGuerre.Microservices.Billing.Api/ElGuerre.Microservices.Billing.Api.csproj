@@ -57,6 +57,7 @@
 		<Folder Include="Application\IntegrationEvents\Events\" />
 		<Folder Include="Application\Models\" />
 		<Folder Include="Domain\Events\" />
+		<Folder Include="Domain\Interfaces\" />
 		<Folder Include="Infrastructure\Middlewares\" />
 	</ItemGroup>
 
