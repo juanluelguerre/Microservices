@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Shared", "ElGuerre.Microservices.Shared\ElGuerre.Microservices.Shared.csproj", "{498787E6-7546-46C2-869C-073CFF768C72}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Sales.Api", "ElGuerre.Microservices.Sales.Api\ElGuerre.Microservices.Sales.Api.csproj", "{046818D1-3B4C-4EB7-8840-7E7776F11951}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Shipping.Api", "ElGuerre.Microservices.Shipping.Api\ElGuerre.Microservices.Shipping.Api.csproj", "{4E7DB436-B682-4198-8653-F3CF08AEE8A9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Billing.Api", "ElGuerre.Microservices.Billing.Api\ElGuerre.Microservices.Billing.Api.csproj", "{3E96ACB4-59AB-429C-AAD4-B6716D81F6E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ElGuerre.Microservices.Messages", "ElGuerre.Microservices.Messages\ElGuerre.Microservices.Messages.csproj", "{FBB468F8-86A0-4238-B9C0-B56F46F8881A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{498787E6-7546-46C2-869C-073CFF768C72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{498787E6-7546-46C2-869C-073CFF768C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{498787E6-7546-46C2-869C-073CFF768C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{498787E6-7546-46C2-869C-073CFF768C72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E96ACB4-59AB-429C-AAD4-B6716D81F6E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E96ACB4-59AB-429C-AAD4-B6716D81F6E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E96ACB4-59AB-429C-AAD4-B6716D81F6E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E96ACB4-59AB-429C-AAD4-B6716D81F6E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BD9A16FD-4339-4B8C-BA4B-690C2DF5EC30}
+	EndGlobalSection
+EndGlobal
