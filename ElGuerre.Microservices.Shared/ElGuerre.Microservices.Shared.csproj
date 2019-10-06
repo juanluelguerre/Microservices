@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="MassTransit" Version="5.5.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>
