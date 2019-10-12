@@ -1,4 +1,5 @@
 ﻿using ElGuerre.Microservices.Messages;
+using ElGuerre.Microservices.Sales.Api.Application.Commands;
 using ElGuerre.Microservices.Sales.Api.Application.Infrastructure;
 using ElGuerre.Microservices.Sales.Api.Application.Models;
 using ElGuerre.Microservices.Sales.Api.Application.Sagas;
@@ -6,6 +7,7 @@ using ElGuerre.Microservices.Sales.Api.Services;
 using GreenPipes;
 using MassTransit;
 using MassTransit.Saga;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -16,12 +18,14 @@ namespace ElGuerre.Microservices.Sales.Api.Application.Services
 {
 	public class OrdersService : IOrdersService
 	{
-		private readonly OrderContext _orderContext;
+		private readonly OrdersContext _orderContext;
+		private readonly IMediator _mediatr;
 		private readonly IBus _bus;		
 
-		public OrdersService(OrderContext context, IBus bus)
+		public OrdersService(IMediator mediatr, OrdersContext context, IBus bus)
 		{
 			_orderContext = context;
+			_mediatr = mediatr;
 			_bus = bus;
 		}
 
@@ -55,28 +59,27 @@ namespace ElGuerre.Microservices.Sales.Api.Application.Services
 			return pagedOrders;
 		}
 
+		public async Task<bool> UpdateNameItem(int orderId, string name)
+		{
+			var command = new OrderUpdateNameCommand(orderId, name);
+			return await _mediatr.Send(command);
+		}
+
 		public async Task<bool> UpdateItem(Order order, bool sampleIsOk)
 		{
-			var @event = new OrderPlaced() { OrderId = order.OrderId, Name = order.Name };
-			@event.CorrelationId = Guid.NewGuid();
-			await _bus.Publish(@event);
 
-			// var endpoint = await _bus.get(new Uri("rabbitmq://localhost/sales_queue"));
-			//var orderRelationId = NewId.NextGuid();			
+			if (await UpdateNameItem(order.OrderId, order.Name))
+			{
+				//
+				// Integration Services Operation
+				//
+				var @event = new OrderPlaced() { OrderId = order.OrderId, Name = order.Name };
+				@event.CorrelationId = Guid.NewGuid();
+				await _bus.Publish(@event);
 
-			//if (sampleIsOk)
-			//{
-
-			//	_sagaCoordinator.ProcessAsync(op, _sagaContext);
-			//	return true;
-			//}
-			//else
-			//{
-			//	_sagaCoordinator.ProcessAsync(new Operation2(), _sagaContext);
-			//	return false;
-			//}
-
-			return await Task.FromResult(true);		
+				return true;
+			}
+			return false;
 		}
 	}
 }

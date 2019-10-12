@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Sales.Api.Application.Infrastructure
 {
-	public class OrderContextSeed
+	public class OrdersContextSeed
 	{
 	}
 }

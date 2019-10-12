@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ElGuerre.Microservices.Sales.Api.Application.Infrastructure
 {
-	public class OrderContext : DbContext
+	public class OrdersContext : DbContext
 	{
-        public OrderContext() : base()
+        public OrdersContext() : base()
         {
         }
 
-        public OrderContext(DbContextOptions<OrderContext> options) : base(options)
+        public OrdersContext(DbContextOptions<OrdersContext> options) : base(options)
 		{
 		}
 

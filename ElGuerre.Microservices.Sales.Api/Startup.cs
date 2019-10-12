@@ -307,7 +307,7 @@ namespace ElGuerre.Microservices.Sales.Api
 
 		public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddDbContext<OrderContext>(options =>
+			services.AddDbContext<OrdersContext>(options =>
 			{
 				var dbInMemory = configuration.GetValue<bool>("DBInMemory");
 

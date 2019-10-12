@@ -18,9 +18,9 @@ namespace ElGuerre.Microservices.Sales.Controllers
 	[ApiController]
 	public class ValuesController : ControllerBase
 	{
-		private readonly OrderContext _modulo1Context;
+		private readonly OrdersContext _modulo1Context;
 
-		public ValuesController(OrderContext context)
+		public ValuesController(OrdersContext context)
 		{
 			_modulo1Context = context ?? throw new ArgumentNullException(nameof(context));
 		}
