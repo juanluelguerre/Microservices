@@ -15,6 +15,7 @@ using MassTransit.Azure.ServiceBus.Core;
 using MassTransit.Azure.ServiceBus.Core.Saga;
 using MassTransit.Context;
 using MassTransit.Saga;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -53,6 +54,7 @@ namespace ElGuerre.Microservices.Sales.Api
 			services
 				.AddCustomDbContext(Configuration)
 				.AddCustomServices()
+				.AddCustomMediatR()
 				.AddSwagger()
 				// .AddCustomDbContext(Configuration)
 				// .AddCustomMassTransitRabbitMQ()
@@ -91,6 +93,12 @@ namespace ElGuerre.Microservices.Sales.Api
 	internal static class CustomExtensionMethods
 	{
 		private const string DATABASE_CONNECIONSTRING = "DataBaseConnection";
+
+		public static IServiceCollection AddCustomMediatR(this IServiceCollection services)
+		{
+			services.AddMediatR(typeof(Startup));
+			return services;
+		}
 
 		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services)
 		{
