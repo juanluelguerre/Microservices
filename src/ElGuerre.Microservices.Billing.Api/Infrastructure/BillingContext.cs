@@ -1,7 +1,7 @@
 ﻿using ElGuerre.Microservices.Billing.Api.Domain;
 using Microsoft.EntityFrameworkCore;
 
-namespace ElGuerre.Microservices.Billing.Api.Application.Infrastructure
+namespace ElGuerre.Microservices.Billing.Api.Infrastructure
 {
 	public class BillingContext : DbContext
 	{

@@ -3,7 +3,7 @@ using ElGuerre.Microservices.Sales.Api.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ElGuerre.Microservices.Sales.Api.Application.Infrastructure.EntityConfigurations
+namespace ElGuerre.Microservices.Sales.Api.Infrastructure.EntityConfigurations
 {
 	internal class OrdersEntityTypeConfiguration
 		: IEntityTypeConfiguration<Domain.Order>

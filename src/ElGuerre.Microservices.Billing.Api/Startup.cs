@@ -1,4 +1,4 @@
-﻿using ElGuerre.Microservices.Billing.Api.Application.Infrastructure;
+﻿using ElGuerre.Microservices.Billing.Api.Infrastructure;
 using ElGuerre.Microservices.Billing.Api.Application.Services;
 using ElGuerre.Microservices.Billing.Api.Infrastructure;
 using ElGuerre.Microservices.Billing.Api.Services;

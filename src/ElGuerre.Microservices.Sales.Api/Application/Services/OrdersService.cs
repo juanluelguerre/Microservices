@@ -1,6 +1,6 @@
 ﻿using ElGuerre.Microservices.Messages;
 using ElGuerre.Microservices.Sales.Api.Application.Commands;
-using ElGuerre.Microservices.Sales.Api.Application.Infrastructure;
+using ElGuerre.Microservices.Sales.Api.Infrastructure;
 using ElGuerre.Microservices.Sales.Api.Application.Models;
 using ElGuerre.Microservices.Sales.Api.Application.Queries;
 using ElGuerre.Microservices.Sales.Api.Application.Sagas;
