@@ -58,8 +58,8 @@
 
 	<ItemGroup>
 		<Folder Include="Application\Extensions\" />
-		<Folder Include="Application\Infrastructure\Migrations\" />
-		<Folder Include="Application\Infrastructure\Mocks\" />
+		<Folder Include="Infrastructure\Migrations\" />
+		<Folder Include="Infrastructure\Mocks\" />
 		<Folder Include="Domain\ValueObjects\" />
 		<Folder Include="Infrastructure\Extensions\" />
 		<Folder Include="Infrastructure\Middlewares\" />

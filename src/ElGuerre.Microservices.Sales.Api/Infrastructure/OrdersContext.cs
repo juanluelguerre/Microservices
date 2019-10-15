@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 
-namespace ElGuerre.Microservices.Sales.Api.Application.Infrastructure
+namespace ElGuerre.Microservices.Sales.Api.Infrastructure
 {
 	public class OrdersContext : DbContext
 	{

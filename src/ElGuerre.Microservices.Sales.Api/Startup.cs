@@ -1,6 +1,6 @@
 ﻿using ElGuerre.Microservices.Messages;
-using ElGuerre.Microservices.Sales.Api.Application.Infrastructure;
-using ElGuerre.Microservices.Sales.Api.Application.Infrastructure.Repositories;
+using ElGuerre.Microservices.Sales.Api.Infrastructure;
+using ElGuerre.Microservices.Sales.Api.Infrastructure.Repositories;
 using ElGuerre.Microservices.Sales.Api.Application.IntegrationEvents;
 using ElGuerre.Microservices.Sales.Api.Application.IntegrationEvents.EventHanders;
 using ElGuerre.Microservices.Sales.Api.Application.Models;

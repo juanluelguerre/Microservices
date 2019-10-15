@@ -9,7 +9,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ElGuerre.Microservices.Sales.Api.Application.Infrastructure
+namespace ElGuerre.Microservices.Sales.Api.Infrastructure
 {
 	public class OrdersContextSeed
 	{

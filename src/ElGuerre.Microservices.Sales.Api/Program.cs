@@ -1,4 +1,4 @@
-﻿using ElGuerre.Microservices.Sales.Api.Application.Infrastructure;
+﻿using ElGuerre.Microservices.Sales.Api.Infrastructure;
 using ElGuerre.Microservices.Shared.Extensions;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;

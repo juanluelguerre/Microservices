@@ -1,4 +1,4 @@
-﻿using ElGuerre.Microservices.Sales.Api.Application.Infrastructure;
+﻿using ElGuerre.Microservices.Sales.Api.Infrastructure;
 using ElGuerre.Microservices.Sales.Api.Application.Models;
 using ElGuerre.Microservices.Sales.Api.Application.ViewModels;
 using ElGuerre.Microservices.Sales.Api.Infrastructure;
