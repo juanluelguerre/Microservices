@@ -17,4 +17,8 @@
     <Folder Include="Commands\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ElGuerre.Microservices.Messages\ElGuerre.Microservices.Messages.csproj" />
+  </ItemGroup>
+
 </Project>

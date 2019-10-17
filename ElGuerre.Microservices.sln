@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Shared", "src\ElGuerre.Microservices.Shared\ElGuerre.Microservices.Shared.csproj", "{498787E6-7546-46C2-869C-073CFF768C72}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Sales.Api", "src\ElGuerre.Microservices.Sales.Api\ElGuerre.Microservices.Sales.Api.csproj", "{046818D1-3B4C-4EB7-8840-7E7776F11951}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Shipping.Api", "src\ElGuerre.Microservices.Shipping.Api\ElGuerre.Microservices.Shipping.Api.csproj", "{4E7DB436-B682-4198-8653-F3CF08AEE8A9}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Billing.Api", "src\ElGuerre.Microservices.Billing.Api\ElGuerre.Microservices.Billing.Api.csproj", "{3E96ACB4-59AB-429C-AAD4-B6716D81F6E2}"
@@ -15,9 +13,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Mess
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{4083FE51-C541-4675-B710-16C634790595}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Sales.Api.IntegrationTests", "test\ElGuerre.Microservices.Sales.Api.IntegrationTests\ElGuerre.Microservices.Sales.Api.IntegrationTests.csproj", "{12D5BA75-801F-4807-8D09-8D8F44A37DF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Ordering.Api", "src\ElGuerre.Microservices.Ordering.Api\ElGuerre.Microservices.Ordering.Api.csproj", "{0174F68F-1939-4D7B-A7DB-DB2701F2ED5D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Sales.Api.Tests", "test\ElGuerre.Microservices.Sales.Api.Tests\ElGuerre.Microservices.Sales.Api.Tests.csproj", "{22B75BEA-D3E6-4133-84F8-B5AA61CAC061}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Ordering.Api.IntegrationTests", "test\ElGuerre.Microservices.Ordering.Api.IntegrationTests\ElGuerre.Microservices.Ordering.Api.IntegrationTests.csproj", "{080324F7-8915-4C4D-B30E-1A9A45A7385C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElGuerre.Microservices.Ordering.ApiTests", "test\ElGuerre.Microservices.Ordering.Api.Tests\ElGuerre.Microservices.Ordering.ApiTests.csproj", "{17DC9CF8-EC05-4044-A2DB-7DF485DFA4E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,10 +29,6 @@ Global
 		{498787E6-7546-46C2-869C-073CFF768C72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{498787E6-7546-46C2-869C-073CFF768C72}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{498787E6-7546-46C2-869C-073CFF768C72}.Release|Any CPU.Build.0 = Release|Any CPU
-		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{046818D1-3B4C-4EB7-8840-7E7776F11951}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E7DB436-B682-4198-8653-F3CF08AEE8A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -45,21 +41,25 @@ Global
 		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FBB468F8-86A0-4238-B9C0-B56F46F8881A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{12D5BA75-801F-4807-8D09-8D8F44A37DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{12D5BA75-801F-4807-8D09-8D8F44A37DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{12D5BA75-801F-4807-8D09-8D8F44A37DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{12D5BA75-801F-4807-8D09-8D8F44A37DF8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{22B75BEA-D3E6-4133-84F8-B5AA61CAC061}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{22B75BEA-D3E6-4133-84F8-B5AA61CAC061}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{22B75BEA-D3E6-4133-84F8-B5AA61CAC061}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{22B75BEA-D3E6-4133-84F8-B5AA61CAC061}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0174F68F-1939-4D7B-A7DB-DB2701F2ED5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0174F68F-1939-4D7B-A7DB-DB2701F2ED5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0174F68F-1939-4D7B-A7DB-DB2701F2ED5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0174F68F-1939-4D7B-A7DB-DB2701F2ED5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{080324F7-8915-4C4D-B30E-1A9A45A7385C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{080324F7-8915-4C4D-B30E-1A9A45A7385C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{080324F7-8915-4C4D-B30E-1A9A45A7385C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{080324F7-8915-4C4D-B30E-1A9A45A7385C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17DC9CF8-EC05-4044-A2DB-7DF485DFA4E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17DC9CF8-EC05-4044-A2DB-7DF485DFA4E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17DC9CF8-EC05-4044-A2DB-7DF485DFA4E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17DC9CF8-EC05-4044-A2DB-7DF485DFA4E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{12D5BA75-801F-4807-8D09-8D8F44A37DF8} = {4083FE51-C541-4675-B710-16C634790595}
-		{22B75BEA-D3E6-4133-84F8-B5AA61CAC061} = {4083FE51-C541-4675-B710-16C634790595}
+		{080324F7-8915-4C4D-B30E-1A9A45A7385C} = {4083FE51-C541-4675-B710-16C634790595}
+		{17DC9CF8-EC05-4044-A2DB-7DF485DFA4E2} = {4083FE51-C541-4675-B710-16C634790595}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BD9A16FD-4339-4B8C-BA4B-690C2DF5EC30}

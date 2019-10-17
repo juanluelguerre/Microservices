@@ -1,1 +1,0 @@
-﻿IntegrationEvents - Events are allocated in a separate Assembly to shared as a Communication interface.

@@ -54,12 +54,7 @@
 	<ItemGroup>
 		<Folder Include="Application\Extensions\" />
 		<Folder Include="Infrastructure\EntityConfigurations\" />
-		<Folder Include="Infrastructure\Repositories\" />
-		<Folder Include="Application\Commands\" />
-		<Folder Include="Application\IntegrationEvents\Events\" />
 		<Folder Include="Application\Models\" />
-		<Folder Include="Domain\Events\" />
-		<Folder Include="Domain\Interfaces\" />
 		<Folder Include="Infrastructure\Middlewares\" />
 	</ItemGroup>
 
