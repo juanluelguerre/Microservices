@@ -3,9 +3,8 @@ using ElGuerre.Microservices.Billing.Api.Application.Services;
 using ElGuerre.Microservices.Billing.Api.Infrastructure;
 using ElGuerre.Microservices.Billing.Api.Services;
 using ElGuerre.Microservices.Messages;
-using ElGuerre.Microservices.Sales.Api.Application.IntegrationEvents;
-using ElGuerre.Microservices.Sales.Api.Application.IntegrationEvents.EventHanders;
-using ElGuerre.Microservices.Sales.Api.Application.Sagas;
+using ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers;
+using ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas;
 using ElGuerre.Microservices.Shared.Infrastructure;
 using GreenPipes;
 using MassTransit;
@@ -92,7 +91,7 @@ namespace ElGuerre.Microservices.Billing.Api
 
 			services.AddMassTransit(options =>
 			{
-				options.AddConsumersFromNamespaceContaining<UpdateOrderConsumer>();
+				options.AddConsumersFromNamespaceContaining<OrderReadyToBillIntegrationEventHandler>();
 				
 				options.AddBus(provider => Bus.Factory.CreateUsingAzureServiceBus(cfg =>
 				{
@@ -166,7 +165,7 @@ namespace ElGuerre.Microservices.Billing.Api
 			services.AddMassTransit(options =>
 			{						
 				// options.AddConsumersFromNamespaceContaining<ElGuerre.Microservices.Sales.Api.Application.Sagas.OrderConsumer>();
-				options.AddConsumer<UpdateOrderToBilledConsumer>();				
+				options.AddConsumer<OrderReadyToBillIntegrationEventHandler>();				
 
 				options.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
 				{
@@ -178,8 +177,8 @@ namespace ElGuerre.Microservices.Billing.Api
 
 					cfg.ReceiveEndpoint(e =>
 					{
-						e.Consumer<UpdateOrderToBilledConsumer>();
-						// e.UseMessageRetry(x => x.Interval(2, 100));						
+						//e.Consumer<OrderReadyToBillIntegrationEventHandler>();
+						
 					});
 				}));
 			});
@@ -272,6 +271,11 @@ namespace ElGuerre.Microservices.Billing.Api
 		public static IServiceCollection AddCustomServices(this IServiceCollection services)
 		{
 			services.AddScoped<IItemsService, ItemsService>();
+
+
+			// Integration Services
+			services.AddScoped<IIntegrationService, IntegrationService>();
+
 			return services;
 		}
 	}

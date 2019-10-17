@@ -8,4 +8,8 @@
     <PackageReference Include="MassTransit" Version="5.5.5" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Customers\" />
+  </ItemGroup>
+
 </Project>

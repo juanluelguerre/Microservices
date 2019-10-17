@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Shipping.Api.Application.IntegrationEvents
 {
-	public class UpdateOrderConsumer : IConsumer<OrderBilled>
+	public class UpdateOrderConsumer : IConsumer<OrderReadyToBillMessage>
 	{
-		public async Task Consume(ConsumeContext<OrderBilled> context)
+		public async Task Consume(ConsumeContext<OrderReadyToBillMessage> context)
 		{
 			Console.WriteLine($"Order placed in a Shipping service with {context.Message.OrderId} accepted.");
 			await Task.FromResult(0);
