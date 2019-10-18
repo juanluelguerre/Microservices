@@ -15,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 {
-	public class OrdersContextSeed
+	public class OrderingContextSeed
 	{
 
-		public async Task SeedAsync(OrdersContext dbContext,
+		public async Task SeedAsync(OrderingContext dbContext,
 			IHostingEnvironment env,
 			IOptions<OrdersSettings> settings,
-			ILogger<OrdersContextSeed> logger)
+			ILogger<OrderingContextSeed> logger)
 		{
-			var policy = CreatePolicy(logger, nameof(OrdersContextSeed));
+			var policy = CreatePolicy(logger, nameof(OrderingContextSeed));
 
 			await policy.ExecuteAsync(async () =>
 			{
@@ -60,7 +60,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 			});
 		}
 
-		private AsyncRetryPolicy CreatePolicy(ILogger<OrdersContextSeed> logger, string prefix, int retries = 3)
+		private AsyncRetryPolicy CreatePolicy(ILogger<OrderingContextSeed> logger, string prefix, int retries = 3)
 		{
 			var policy = Policy.Handle<SqlException>().
 				WaitAndRetryAsync(

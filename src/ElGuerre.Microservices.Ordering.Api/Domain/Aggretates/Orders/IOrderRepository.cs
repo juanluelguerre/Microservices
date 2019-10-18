@@ -4,12 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ElGuerre.Microservices.Ordering.Api.Domain.Orders
+namespace ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders
 {
-	public interface IOrdersRepository : IRepository<Order>
+	public interface IOrderRepository : IRepository<Order>
 	{
-		Task<Order> GetByIdAsync(int orderId);
-		Task<IQueryable<Order>> GetAsync(int pageIndex, int pageSize);
 		Order Add(Order order);
 		void Update(Order order);		
 	}

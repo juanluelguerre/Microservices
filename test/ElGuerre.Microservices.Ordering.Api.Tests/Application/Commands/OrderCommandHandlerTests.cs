@@ -17,8 +17,8 @@ namespace ElGuerre.Microservices.Sales.Api.Tests.Application.Commands
 			var services = new ServiceCollection();
 
 			// services.AddMediatR(typeof(OrderUpdateNameCommandHandler));
-			services.AddMediatR(typeof(OrdersByIdQueryHandler));
-			services.AddMediatR(typeof(OrdersPagedQueryHandler));
+			services.AddMediatR(typeof(OrderByIdQueryHandler));
+			services.AddMediatR(typeof(OrderPagedQueryHandler));
 
 			_mediator = services.BuildServiceProvider().GetService<IMediator>();
 		}
@@ -35,10 +35,10 @@ namespace ElGuerre.Microservices.Sales.Api.Tests.Application.Commands
 		public async Task OrdersByIdQueryHanderTest()
 		{
 			const int EXPECTED_ORDER = 1;
-			var order = await _mediator.Send(new OrdersByIdQuery(EXPECTED_ORDER));
+			var order = await _mediator.Send(new OrderByIdQuery(EXPECTED_ORDER));
 			Assert.Null(order);
-			Assert.IsType<Order>(order);
-			Assert.Equal(EXPECTED_ORDER, order.OrderId);
+			Assert.IsType<OrderModel>(order);
+			Assert.Equal(EXPECTED_ORDER, order.OrderNumber);
 		}
 	}
 }

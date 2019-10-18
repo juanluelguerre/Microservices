@@ -1,8 +1,12 @@
 ﻿using Automatonymous;
+using ElGuerre.Microservices.Billing.Api.Application.Commands;
+using ElGuerre.Microservices.Billing.Api.Domain.Exceptions;
 using ElGuerre.Microservices.Messages;
 using ElGuerre.Microservices.Shared.Infrastructure;
 using MassTransit;
 using MassTransit.Saga;
+using MediatR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +17,18 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 	// https://masstransit-project.com/MassTransit/advanced/sagas/automatonymous.html	
 	public class BillingStateMachine : MassTransitStateMachine<BillingState>, ISaga
 	{
+		private readonly ILogger _logger;
+		// private readonly IMediator _mediator;
+
 		public Guid CorrelationId { get; set; }
 		public State Billed { get; private set; }
 		public Event<OrderReadyToBillMessage> OrderReadyToBillEvent { get; private set; }
 
-		public BillingStateMachine()
+		public BillingStateMachine(ILoggerFactory loggerFactory /*, IMediator mediator */)
 		{
+			_logger = loggerFactory.CreateLogger<BillingStateMachine>();
+			// _mediator = mediator;
+
 			InstanceState(x => x.CurrentState);
 
 			Event(() => OrderReadyToBillEvent,
@@ -40,14 +50,29 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 				When(OrderReadyToBillEvent)
 					.Then(context =>
 					{
-						Console.WriteLine("Initially");
+						_logger.LogInformation("Initially");
 					})
 					.ThenAsync(async context =>
 					{
-						Console.WriteLine($"Order ready to bill: {context.Data.OrderId} to {context.Instance.CorrelationId}");
-						await Task.CompletedTask;
+						_logger.LogInformation($"Order ready to bill: {context.Data.OrderId} to {context.Instance.CorrelationId}");
+
+						//TODO: Simulate 
+						// var command = new OrderReadyToBillCommand(context.Instance.OrderId);
+						// var result = await _mediator.Send(command);
+						// await Task.CompletedTask;
+
+						//throw new BillingException();						
 					})
 					.Publish(context => new OrderBillSuccededMessage(context.Instance.OrderId) { CorrelationId = context.Instance.CorrelationId })
+					//.Catch<Exception>(ex =>
+					//{
+					//	// TODO: Treat exceptions
+
+					//	//TODO: Publish AbortedEvent !!!!!
+
+					//	return rew BillingException();
+					//})
+
 					.Finalize()
 			);
 
@@ -55,15 +80,15 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 			//	When(OrderBilledEvent)
 			//		.Then(context =>
 			//		{
-			//			Console.Out.WriteAsync("Billed ! Next transport ready the product will ber shipped !");
+			//			_logger.LogInformation("Billed ! Next transport ready the product will ber shipped !");
 			//		})
 			//		//.ThenAsync(async context=>
 			//		//{
-			//		//	Console.WriteLine($"Order billed Successfully: {context.Data.OrderId} to {context.Instance.CorrelationId}");
+			//		//	_logger.LogInformation($"Order billed Successfully: {context.Data.OrderId} to {context.Instance.CorrelationId}");
 			//		//})					
 			//		.ThenAsync(async context =>
 			//		{
-			//			Console.WriteLine($"Order billed Successfully: {context.Data.OrderId} to {context.Instance.CorrelationId}");
+			//			_logger.LogInformation($"Order billed Successfully: {context.Data.OrderId} to {context.Instance.CorrelationId}");
 			//		})
 			//		.Publish(context => new OrderBilledSuccessfully(context.Instance.OrderId, context.Instance.Amount))
 			//		.Finalize()

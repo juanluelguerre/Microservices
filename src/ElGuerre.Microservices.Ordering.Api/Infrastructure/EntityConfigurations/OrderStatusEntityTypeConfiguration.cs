@@ -13,7 +13,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.EntityConfiguration
 	{
 		public void Configure(EntityTypeBuilder<OrderStatus> orderStatusConfiguration)
 		{
-			orderStatusConfiguration.ToTable("orderstatus", OrdersContext.DEFAULT_SCHEMA);
+			orderStatusConfiguration.ToTable("orderstatus", OrderingContext.DEFAULT_SCHEMA);
 
 			orderStatusConfiguration.HasKey(o => o.Id);
 

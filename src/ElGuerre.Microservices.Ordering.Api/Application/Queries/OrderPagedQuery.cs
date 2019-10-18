@@ -1,4 +1,5 @@
 ﻿using ElGuerre.Microservices.Ordering.Api.Application.Models;
+using ElGuerre.Microservices.Ordering.Api.Application.ViewModels;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -7,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Ordering.Api.Application.Queries
 {
-	public class OrdersPagedQuery : IRequest<PagedItems<Order>>
+	public class OrderPagedQuery : IRequest<PagedItemsViewModel<OrderModel>>
 	{
 		public int PageIndex { get; private set; }
 		public int PageSize { get; private set; }
 
-		public OrdersPagedQuery(int pageIndex, int pageSize)
+		public OrderPagedQuery(int pageIndex, int pageSize)
 		{
 			PageIndex = pageIndex;
 			PageSize = pageSize;

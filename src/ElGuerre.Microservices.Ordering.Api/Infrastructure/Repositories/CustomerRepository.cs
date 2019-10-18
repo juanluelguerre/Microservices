@@ -12,7 +12,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories
 {
 	public class CustomerRepository : ICustomerRepository
 	{		 
-        private readonly OrdersContext _context;
+        private readonly OrderingContext _context;
 		public IUnitOfWork UnitOfWork
 		{
 			get
@@ -21,7 +21,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories
 			}
 		}
 
-		public CustomerRepository(OrdersContext context)
+		public CustomerRepository(OrderingContext context)
 		{
 			_context = context ?? throw new ArgumentNullException(nameof(context));
 		}

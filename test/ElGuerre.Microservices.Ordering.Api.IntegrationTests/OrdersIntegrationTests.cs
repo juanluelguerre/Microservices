@@ -40,7 +40,7 @@ namespace ElGuerre.Microservices.Sales.Api.IntegrationTests
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			var content = await response.Content.ReadAsStringAsync();
 
-			var orders = JsonConvert.DeserializeObject<IEnumerable<Order>>(content);
+			var orders = JsonConvert.DeserializeObject<IEnumerable<OrderModel>>(content);
 			Assert.NotNull(orders);
 			Assert.True(orders.Any());
 		}
@@ -56,7 +56,7 @@ namespace ElGuerre.Microservices.Sales.Api.IntegrationTests
 			Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 			var content = await response.Content.ReadAsStringAsync();
 
-			var order = JsonConvert.DeserializeObject<Order>(content);
+			var order = JsonConvert.DeserializeObject<OrderModel>(content);
 			Assert.NotNull(order);
 		}
 
@@ -107,9 +107,9 @@ namespace ElGuerre.Microservices.Sales.Api.IntegrationTests
 
 		private static StringContent GetOrderSample(int orderId)
 		{
-			var proj = new Order()
+			var proj = new OrderModel()
 			{
-				OrderId = orderId,
+				OrderNumber = orderId,
 				Name = "Sample Order 1"
 			};
 

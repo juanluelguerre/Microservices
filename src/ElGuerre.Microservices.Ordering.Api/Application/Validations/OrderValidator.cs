@@ -11,7 +11,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Validations
 	/// Order Validation to be sure its properties have correct values.
 	/// </summary>
 	/// <seealso cref="https://fluentvalidation.net/start"/>
-	public class OrderValidator : AbstractValidator<Order>
+	public class OrderValidator : AbstractValidator<OrderModel>
 	{
 		public OrderValidator()
 		{

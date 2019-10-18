@@ -43,10 +43,10 @@ namespace ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders
 		}
 
 		public Order(string userId, string userName, Address address, int cardTypeId, string cardNumber,
-			string cardHolderName, DateTime cardExpiration, int? buyerId = null, int? paymentMethodId = null)
+			string cardHolderName, DateTime cardExpiration, int? customerId = null, int? paymentMethodId = null)
 		{
 			_orderStatusId = OrderStatus.Submitted;
-			CustomerId = buyerId;
+			CustomerId = customerId;
 			PaymentMethodId = paymentMethodId;
 			OrderDate = DateTime.UtcNow;
 			this.Address = address;
@@ -60,7 +60,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders
 		// This Order AggregateRoot's method "AddOrderitem()" should be the only way to add Items to the Order,
 		// so any behavior (discounts, etc.) and validations are controlled by the AggregateRoot 
 		// in order to maintain consistency between the whole Aggregate. 
-		public void AddOrderItem(int productId, string productName, decimal unitPrice, decimal discount, string pictureUrl, int units = 1)
+		public void AddOrderItem(int productId, string productName, decimal unitPrice, decimal discount, int units = 1)
 		{
 			var existingOrderForProduct = _orderItems.Where(o => o.ProductId == productId)
 				.SingleOrDefault();
@@ -69,7 +69,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders
 			{
 				//if previous line exist modify it with higher discount  and units..
 
-				if (discount > existingOrderForProduct.GetCurrentDiscount())
+				if (discount > existingOrderForProduct.GetDiscount())
 				{
 					existingOrderForProduct.SetNewDiscount(discount);
 				}

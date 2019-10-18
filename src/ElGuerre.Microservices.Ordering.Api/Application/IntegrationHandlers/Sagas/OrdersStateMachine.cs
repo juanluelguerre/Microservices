@@ -1,6 +1,7 @@
 ﻿using Automatonymous;
 using ElGuerre.Microservices.Messages;
 using ElGuerre.Microservices.Messages.Orders;
+using ElGuerre.Microservices.Ordering.Api.Application.Commands;
 using MassTransit;
 using MassTransit.Saga;
 using Microsoft.Extensions.Logging;
@@ -22,12 +23,12 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sa
 		// public Event<OrderSartedMessage> OrderStartedEvent { get; private set; }		
 		public Event<OrderBillSuccededMessage> OrderBilledSuccededEvent { get; private set; }
 
-		public OrdersStateMachine(ILogger logger)
+		public OrdersStateMachine(ILoggerFactory loggerFactory)
 		{
-			_logger = logger;
+			_logger = loggerFactory.CreateLogger<OrdersStateMachine>();
 
 			InstanceState(x => x.CurrentState);
-			
+						
 			///
 			// Event(() => OrderBilledSuccessfully, x => { x.CorrelateById(order => order.CorrelationId), context => context.Message.CorrelationId); });
 
@@ -72,6 +73,10 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sa
 				.ThenAsync(async context =>
 				{
 					// Billed Services published everything was OK, so payed/billed was done !
+
+					//var command = new OrderSetToBilledCommand(context.Data.OrderId);
+					//await _mediator.Send(command);
+
 					_logger.LogInformation("Order Billed. The Pay was done successfully !!!");
 					await Task.CompletedTask;
 				})

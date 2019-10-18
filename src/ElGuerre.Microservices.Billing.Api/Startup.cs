@@ -29,27 +29,30 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using MediatR;
 
 namespace ElGuerre.Microservices.Billing.Api
 {
 	public class Startup
 	{
-		public Startup(IConfiguration configuration)
-		{
-			Configuration = configuration;
-		}
+		public readonly IConfiguration _configuration;
+		public readonly ILoggerFactory _loggerFactory;		
 
-		public IConfiguration Configuration { get; }
+		public Startup(ILoggerFactory loggerFactory, IConfiguration configuration)
+		{
+			_configuration = configuration;
+			_loggerFactory = loggerFactory;	
+		}		
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services
-				.AddCustomDbContext(Configuration)
+				.AddCustomDbContext(_configuration)
 				.AddCustomServices()
 				.AddCustomSwagger()
 				// .AddCustomDbContext(Configuration)
-				.AddCustomMassTransitAzureServiceBus()
+				.AddCustomMassTransitAzureServiceBus(_loggerFactory, false)
 				// .AddCustomMassTransitRabbitMQ()
 				.AddCustomMVC();
 		}
@@ -85,10 +88,8 @@ namespace ElGuerre.Microservices.Billing.Api
 	{
 		private const string DATABASE_CONNECIONSTRING = "DataBaseConnection";
 
-		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services)
+		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services, ILoggerFactory loggerFactory, bool isSagaTest)
 		{
-			bool isSagaTest = false;
-
 			services.AddMassTransit(options =>
 			{
 				options.AddConsumersFromNamespaceContaining<OrderReadyToBillIntegrationEventHandler>();
@@ -147,9 +148,13 @@ namespace ElGuerre.Microservices.Billing.Api
 						// e.EnablePartitioning = true;  // Message Broker is enabled !
 						e.MessageWaitTimeout = TimeSpan.FromMinutes(5);
 
-						var sagaMachine = new BillingStateMachine();
+						var sagaMachine = new BillingStateMachine(loggerFactory);
 						e.StateMachineSaga(sagaMachine, sagaRepository);
 					});
+
+					//var result = provider.GetProbeResult();
+					//var logger = loggerFactory.CreateLogger<Startup>();
+					//logger.LogTrace(result.ToJsonString());
 				}));
 			});
 			

@@ -33,13 +33,13 @@ namespace ElGuerre.Microservices.Ordering.Api
 				var host = BuildWebHost(configuration, args);
 
 				Log.Information("Applying migrations ({ApplicationContext})...", AppName);
-				host.MigrateDbContext<OrdersContext>((context, services) =>
+				host.MigrateDbContext<OrderingContext>((context, services) =>
 				{
 					var env = services.GetService<IHostingEnvironment>();
 					var settings = services.GetService<IOptions<OrdersSettings>>();
-					var logger = services.GetService<ILogger<OrdersContextSeed>>();
+					var logger = services.GetService<ILogger<OrderingContextSeed>>();
 
-					new OrdersContextSeed()
+					new OrderingContextSeed()
 						.SeedAsync(context, env, settings, logger)
 						.Wait();
 				});

@@ -1,10 +1,12 @@
 ﻿using ElGuerre.Microservices.Messages;
-using ElGuerre.Microservices.Ordering.Api.Infrastructure;
-using ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories;
-using ElGuerre.Microservices.Ordering.Api.Application.Models;
+using ElGuerre.Microservices.Messages.Orders;
 using ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sagas;
+using ElGuerre.Microservices.Ordering.Api.Application.Models;
+using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
+using ElGuerre.Microservices.Ordering.Api.Infrastructure;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure.Filters;
+using ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories;
 using ElGuerre.Microservices.Shared.Infrastructure;
 using GreenPipes;
 using MassTransit;
@@ -32,19 +34,17 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using ElGuerre.Microservices.Ordering.Api.Domain.Orders;
-using ElGuerre.Microservices.Messages.Orders;
 
 namespace ElGuerre.Microservices.Ordering.Api
 {
 	public class Startup
 	{
 		public readonly IConfiguration _configuration;
-		public readonly ILogger _logger;
+		public readonly ILoggerFactory _loggerFactory;
 
-		public Startup(ILogger<Startup> logger, IConfiguration configuration)
+		public Startup(ILoggerFactory loggerFactory, IConfiguration configuration)
 		{
-			_logger = logger;
+			_loggerFactory = loggerFactory;
 			_configuration = configuration;
 		}
 
@@ -58,7 +58,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 				.AddSwagger()
 				.AddCustomDbContext(_configuration)
 				// .AddCustomMassTransitRabbitMQ()
-				.AddCustomMassTransitAzureServiceBus(_logger)
+				.AddCustomMassTransitAzureServiceBus(_loggerFactory, isSagaTest: false)
 				.AddCustomMVC();
 		}
 
@@ -103,11 +103,8 @@ namespace ElGuerre.Microservices.Ordering.Api
 			return services;
 		}
 
-		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services, ILogger logger)
+		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services, ILoggerFactory loggerFactory, bool isSagaTest)
 		{
-			bool isSagaTest = false;
-			// MessageCorrelation.UseCorrelationId<OrderPlaced>(x => x.CorrelationId);
-
 			services.AddMassTransit(options =>
 			{
 				// Integration Events as Masstransit Consumers.
@@ -133,15 +130,15 @@ namespace ElGuerre.Microservices.Ordering.Api
 
 							// https://github.com/Azure/azure-service-bus-dotnet/issues/399
 							// without this line MassTransit sets the Token TTL to 0.00 instead of null
-							x.TokenTimeToLive = TimeSpan.FromDays(1);							
+							x.TokenTimeToLive = TimeSpan.FromDays(1);
 						});
 					});
 
 					// cfg.SubscriptionEndpoint(host, "buscriptionxxx", "topicxxx", config => { config.xxx });					
 
-					// cfg.Send<IEvent(x =>
-					cfg.Send<OrderReadyToBillMessage>(x =>
-					{						
+					cfg.Send<IEvent>(x =>
+					//cfg.Send<OrderReadyToBillMessage>(x =>
+					{
 						x.UseSessionIdFormatter(context =>
 						{
 							var sessionId = context.CorrelationId.ToString();
@@ -149,16 +146,6 @@ namespace ElGuerre.Microservices.Ordering.Api
 							return sessionId;
 						});
 					});
-
-					//cfg.Send<OrderBilled>(x =>
-					//{					
-					//	x.UseSessionIdFormatter(context =>
-					//	{
-					//		var sessionId = context.CorrelationId.ToString();
-					//		context.SetReplyToSessionId(sessionId);
-					//		return sessionId;
-					//	});
-					//});
 
 					cfg.ReceiveEndpoint(host, "saga_sales_queue", e =>
 					{
@@ -172,7 +159,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 
 						e.UseMessageRetry(r =>
 						{
-							r.Interval(4, TimeSpan.FromSeconds(30));							
+							r.Interval(4, TimeSpan.FromSeconds(30));
 						});
 
 						ISagaRepository<SalesState> sagaRepository;
@@ -194,15 +181,17 @@ namespace ElGuerre.Microservices.Ordering.Api
 						// e.EnablePartitioning = true;  // Message Broker is enabled !
 						e.MessageWaitTimeout = TimeSpan.FromMinutes(5);
 
-						var sagaMachine = new OrdersStateMachine(logger);
+						var sagaMachine = new OrdersStateMachine(loggerFactory);
 						e.StateMachineSaga(sagaMachine, sagaRepository);
-						//e.Saga<UpdatePolicySaga>(new MessageSessionSagaRepository<UpdatePolicySaga>)
+
+						// e.Saga<OrdersStateMachine>(provider);
 					});
 				}));
 			});
 
 
 			services.AddSingleton<ISendEndpointProvider>(provider => provider.GetRequiredService<IBusControl>());
+
 			// services.AddSingleton<ISaga, SalesStateMachine>();
 
 
@@ -213,7 +202,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 			return services;
 		}
 
-		public static IServiceCollection AddCustomMassTransitRabbitMQ(this IServiceCollection services, ILogger logger)
+		public static IServiceCollection AddCustomMassTransitRabbitMQ(this IServiceCollection services, ILoggerFactory loggerFactory)
 		{
 			// https://masstransit-project.com/MassTransit/advanced/sagas/automatonymous.html
 
@@ -222,7 +211,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 				// options.AddConsumersFromNamespaceContaining<ElGuerre.Microservices.Ordering.Api.Application.Sagas.OrderConsumer>();
 				// options.AddConsumer<UpdateOrderConsumer>();
 				var sagaRepository = new InMemorySagaRepository<SalesState>();
-				var sagaMachine = new OrdersStateMachine(logger);
+				var sagaMachine = new OrdersStateMachine(loggerFactory);
 
 				options.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
 				{
@@ -313,7 +302,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 
 		public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
 		{
-			services.AddDbContext<OrdersContext>(options =>
+			services.AddDbContext<OrderingContext>(options =>
 			{
 				var dbInMemory = configuration.GetValue<bool>("DBInMemory");
 
@@ -367,9 +356,9 @@ namespace ElGuerre.Microservices.Ordering.Api
 		}
 
 		public static IServiceCollection AddCustomServices(this IServiceCollection services)
-		{			
+		{
 			// services.AddScoped<IOrdersService, OrdersService>();
-			services.AddScoped<IOrdersRepository, OrdersRepository>();
+			services.AddScoped<IOrderRepository, OrdersRepository>();
 
 			// Integration Services
 			services.AddScoped<IIntegrationService, IntegrationService>();
