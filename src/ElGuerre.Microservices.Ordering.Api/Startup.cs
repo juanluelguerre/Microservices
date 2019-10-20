@@ -1,13 +1,21 @@
 ﻿using ElGuerre.Microservices.Messages;
 using ElGuerre.Microservices.Messages.Orders;
+using ElGuerre.Microservices.Ordering.Api.Application;
+using ElGuerre.Microservices.Ordering.Api.Application.Commands;
+using ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers;
 using ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sagas;
 using ElGuerre.Microservices.Ordering.Api.Application.Models;
+using ElGuerre.Microservices.Ordering.Api.Application.Validations;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
+using ElGuerre.Microservices.Ordering.Api.Domain.Customers;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure.Filters;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories;
+using ElGuerre.Microservices.Shared.Behaviors;
 using ElGuerre.Microservices.Shared.Infrastructure;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using GreenPipes;
 using MassTransit;
 using MassTransit.Azure.ServiceBus.Core;
@@ -17,6 +25,7 @@ using MassTransit.Saga;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
@@ -40,25 +49,25 @@ namespace ElGuerre.Microservices.Ordering.Api
 	public class Startup
 	{
 		public readonly IConfiguration _configuration;
-		public readonly ILoggerFactory _loggerFactory;
+		public readonly OrderingSettings _settings;
 
-		public Startup(ILoggerFactory loggerFactory, IConfiguration configuration)
-		{
-			_loggerFactory = loggerFactory;
+		public Startup(IConfiguration configuration)
+		{			
 			_configuration = configuration;
+			_settings = _configuration.GetSection(Program.AppName).Get<OrderingSettings>();
 		}
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services
-				.AddCustomDbContext(_configuration)
-				.AddCustomServices()
-				.AddCustomMediatR()
+				.AddCustomDbContext(_configuration, _settings)
+				.AddCustomServices()				
 				.AddSwagger()
-				.AddCustomDbContext(_configuration)
+				.AddCustomConfiguration(_configuration)
+				.AddCustomMediatR()
 				// .AddCustomMassTransitRabbitMQ()
-				.AddCustomMassTransitAzureServiceBus(_loggerFactory, isSagaTest: false)
+				.AddCustomMassTransitAzureServiceBus(_settings, isSagaTest: false)
 				.AddCustomMVC();
 		}
 
@@ -92,42 +101,33 @@ namespace ElGuerre.Microservices.Ordering.Api
 
 	internal static class CustomExtensionMethods
 	{
-		private const string DATABASE_CONNECIONSTRING = "DataBaseConnection";
-
-		public static IServiceCollection AddCustomMediatR(this IServiceCollection services)
-		{
-			services.AddMediatR(typeof(Startup));
-			// services.AddSingleton(typeof(IPipelineBehavior<,>), typeof(ValidatorBehavior<,>));
-
-
-			return services;
-		}
-
-		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services, ILoggerFactory loggerFactory, bool isSagaTest)
+		public static IServiceCollection AddCustomMassTransitAzureServiceBus(
+			this IServiceCollection services,
+			OrderingSettings settings, 
+			bool isSagaTest)
 		{
 			services.AddMassTransit(options =>
 			{
 				// Integration Events as Masstransit Consumers.
-				options.AddConsumersFromNamespaceContaining<OrderBillSuccededMessage>();
+				options.AddConsumersFromNamespaceContaining<OrderToPayConsumer>();				
 
 				options.AddBus(provider => Bus.Factory.CreateUsingAzureServiceBus(cfg =>
 				{
 					// cfg.EnablePartitioning = true; // Message Broker is enabled !
 					cfg.RequiresSession = !isSagaTest;
-					// cfg.UseJsonSerializer();
+					cfg.UseJsonSerializer();
 
-					// var host = cfg.Host("#CONNECTION_STRING#", hostConfig =>
-					var host = cfg.Host(new Uri("sb://loanmesb2.servicebus.windows.net/"), hostConfig =>
+					// var host = cfg.Host(settings.EventBusConnectionString, hostConfig =>
+					var host = cfg.Host(new Uri(settings.EventBusUrl), hostConfig =>
 					{
 						// hostConfig.ExchangeType = ExchangeType.Topic;
-						hostConfig.TransportType = Microsoft.Azure.ServiceBus.TransportType.AmqpWebSockets;
-						hostConfig.RetryLimit = 3;
-						hostConfig.OperationTimeout = TimeSpan.FromMinutes(1);
+						// hostConfig.TransportType = Microsoft.Azure.ServiceBus.TransportType.AmqpWebSockets;
+						//hostConfig.RetryLimit = 3;
+						//hostConfig.OperationTimeout = TimeSpan.FromMinutes(1);
 						hostConfig.SharedAccessSignature(x =>
 						{
-							x.KeyName = "RootManageSharedAccessKey";
-							x.SharedAccessKey = "5Gl5GvrBEX53QLElJd2nEc+tnVi4RoQzTJ9b4SttDVI=";
-
+							x.KeyName = settings.EventBusKeyName;
+							x.SharedAccessKey = settings.EventBusSharedAccessKey;
 							// https://github.com/Azure/azure-service-bus-dotnet/issues/399
 							// without this line MassTransit sets the Token TTL to 0.00 instead of null
 							x.TokenTimeToLive = TimeSpan.FromDays(1);
@@ -136,8 +136,8 @@ namespace ElGuerre.Microservices.Ordering.Api
 
 					// cfg.SubscriptionEndpoint(host, "buscriptionxxx", "topicxxx", config => { config.xxx });					
 
-					cfg.Send<IEvent>(x =>
-					//cfg.Send<OrderReadyToBillMessage>(x =>
+					// cfg.Send<IEvent>(x =>
+					cfg.Send<OrderReadyToBillMessage>(x =>
 					{
 						x.UseSessionIdFormatter(context =>
 						{
@@ -161,18 +161,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 						{
 							r.Interval(4, TimeSpan.FromSeconds(30));
 						});
-
-						ISagaRepository<SalesState> sagaRepository;
-						if (isSagaTest)
-						{
-							sagaRepository = new InMemorySagaRepository<SalesState>();
-						}
-						else
-						{
-							e.RequiresSession = true;
-							sagaRepository = new MessageSessionSagaRepository<SalesState>();
-						}
-
+						
 						// All messages that should be published, are collected in a buffer, which is called “outbox”
 						//e.UseInMemoryOutbox();
 
@@ -180,39 +169,38 @@ namespace ElGuerre.Microservices.Ordering.Api
 						//e.RemoveSubscriptions = true;
 						// e.EnablePartitioning = true;  // Message Broker is enabled !
 						e.MessageWaitTimeout = TimeSpan.FromMinutes(5);
+						e.RequiresSession = !isSagaTest;
 
-						var sagaMachine = new OrdersStateMachine(loggerFactory);
-						e.StateMachineSaga(sagaMachine, sagaRepository);
+						// e.Consumer<OrderToPayConsumer>( );
+						// e.Consumer(() => provider.GetRequiredService<IConsumer<OrderToPayConsumer>>());
 
-						// e.Saga<OrdersStateMachine>(provider);
+						e.StateMachineSaga(provider.GetRequiredService<OrdersSagaStateMachine>(),
+							provider.GetRequiredService<ISagaRepository<OrderSagaState>>());						
 					});
 				}));
 			});
 
-
-			services.AddSingleton<ISendEndpointProvider>(provider => provider.GetRequiredService<IBusControl>());
-
-			// services.AddSingleton<ISaga, SalesStateMachine>();
-
+			// services.AddSingleton<ISendEndpointProvider>(provider => provider.GetRequiredService<IBusControl>());
 
 			// Required to start Bus Service.
 			services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, BusHostedService>();
-			// services.AddSingleton<ISagaRepository<SalesState>, MessageSessionSagaRepository<SalesState>>();
+
+			if (isSagaTest)
+				services.AddSingleton<ISagaRepository<OrderSagaState>, InMemorySagaRepository<OrderSagaState>>();
+			else
+				services.AddSingleton<ISagaRepository<OrderSagaState>, MessageSessionSagaRepository<OrderSagaState>>();
+
+			services.AddSingleton<OrdersSagaStateMachine>();
 
 			return services;
 		}
 
-		public static IServiceCollection AddCustomMassTransitRabbitMQ(this IServiceCollection services, ILoggerFactory loggerFactory)
+		public static IServiceCollection AddCustomMassTransitRabbitMQ(this IServiceCollection services, ILoggerFactory loggerFactory, bool isSagaTest)
 		{
 			// https://masstransit-project.com/MassTransit/advanced/sagas/automatonymous.html
 
 			services.AddMassTransit(options =>
 			{
-				// options.AddConsumersFromNamespaceContaining<ElGuerre.Microservices.Ordering.Api.Application.Sagas.OrderConsumer>();
-				// options.AddConsumer<UpdateOrderConsumer>();
-				var sagaRepository = new InMemorySagaRepository<SalesState>();
-				var sagaMachine = new OrdersStateMachine(loggerFactory);
-
 				options.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
 				{
 					var host = cfg.Host(new Uri("rabbitmq://localhost/"), hostConfig =>
@@ -225,24 +213,12 @@ namespace ElGuerre.Microservices.Ordering.Api
 
 					cfg.ReceiveEndpoint(host, "sales_saga_queue", e =>
 					{
-						//e.BindMessageExchanges = false;						
-						//e.Bind("submitorder", x =>
-						//{
-						//	x.ExchangeType = ExchangeType.Direct;
-						//});
-						// e.Bind<OrderConsumer>();						
-
-						// e.Consumer<UpdateOrderConsumer>();						
-						// e.UseMessageRetry(x => x.Interval(2, 100));
-
-						e.StateMachineSaga(sagaMachine, sagaRepository);
+						// e.StateMachineSaga(sagaMachine, sagaRepository);
+						e.StateMachineSaga(provider.GetRequiredService<OrdersSagaStateMachine>(),
+							provider.GetRequiredService<ISagaRepository<OrderSagaState>>());
 					});
 
-					//cfg.ReceiveEndpoint(host, "shiping_queue", e =>
-					//{
-					//	e.PrefetchCount = 1;
-					//	// e.Consumer(() => 
-					//});
+
 
 					cfg.UseCircuitBreaker(cb =>
 					{
@@ -263,11 +239,48 @@ namespace ElGuerre.Microservices.Ordering.Api
 				// EndpointConvention.Map<Order>(new Uri($"rabbitmq://localhost/{queueName}"));				
 			});
 
-			// services.AddScoped<PublishOrderEventActivity>();
-			services.RegisterInMemorySagaRepository();
-
 			// Required to start Bus Service.
 			services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, BusHostedService>();
+
+			if (isSagaTest)
+				services.AddSingleton<ISagaRepository<OrderSagaState>, InMemorySagaRepository<OrderSagaState>>();
+			else
+				services.AddSingleton<ISagaRepository<OrderSagaState>, MessageSessionSagaRepository<OrderSagaState>>();
+
+			services.AddSingleton<OrdersSagaStateMachine>();
+
+			return services;
+		}
+
+		public static IServiceCollection AddCustomMediatR(this IServiceCollection services)
+		{
+			services.AddMediatR(typeof(Startup));
+			// services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidatorPipelineBehavior<,>));
+
+			return services;
+		}
+
+		public static IServiceCollection AddCustomConfiguration(this IServiceCollection services, IConfiguration configuration)
+		{
+			services.AddOptions();
+			services.Configure<OrderingSettings>(_ => configuration.GetSection(Program.AppName).Get<OrderingSettings>());
+			services.Configure<ApiBehaviorOptions>(options =>
+			{
+				options.InvalidModelStateResponseFactory = context =>
+				{
+					var problemDetails = new ValidationProblemDetails(context.ModelState)
+					{
+						Instance = context.HttpContext.Request.Path,
+						Status = StatusCodes.Status400BadRequest,
+						Detail = "Please refer to the errors property for additional details."
+					};
+
+					return new BadRequestObjectResult(problemDetails)
+					{
+						ContentTypes = { "application/problem+json", "application/problem+xml" }
+					};
+				};
+			});
 
 			return services;
 		}
@@ -280,7 +293,10 @@ namespace ElGuerre.Microservices.Ordering.Api
 				options.Filters.Add(typeof(ValidateModelState));
 			})
 			.SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+			.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
 			.AddControllersAsServices();
+
+			 services.AddTransient(typeof(IValidator<OrderValidator>), typeof(OrderValidator));
 
 			services.AddCors(options =>
 			{
@@ -300,13 +316,11 @@ namespace ElGuerre.Microservices.Ordering.Api
 			return services;
 		}
 
-		public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
+		public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration, OrderingSettings settings)
 		{
 			services.AddDbContext<OrderingContext>(options =>
 			{
-				var dbInMemory = configuration.GetValue<bool>("DBInMemory");
-
-				if (dbInMemory)
+				if (configuration.GetValue<bool>("DBInMemory"))
 				{
 					options.UseInMemoryDatabase("OrdersDB",
 						(ops) =>
@@ -316,7 +330,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 				}
 				else
 				{
-					options.UseSqlServer(configuration.GetConnectionString(DATABASE_CONNECIONSTRING),
+					options.UseSqlServer(settings.OrdersDBConnectionString,
 										 sqlServerOptionsAction: sqlOptions =>
 										 {
 											 sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
@@ -356,14 +370,15 @@ namespace ElGuerre.Microservices.Ordering.Api
 		}
 
 		public static IServiceCollection AddCustomServices(this IServiceCollection services)
-		{
-			// services.AddScoped<IOrdersService, OrdersService>();
-			services.AddScoped<IOrderRepository, OrdersRepository>();
+		{			
+			services.AddTransient<IOrderRepository, OrdersRepository>();
+			services.AddTransient<ICustomerRepository, CustomerRepository>();
 
 			// Integration Services
-			services.AddScoped<IIntegrationService, IntegrationService>();
+			services.AddTransient<IIntegrationService, IntegrationService>();
 
 			return services;
 		}
 	}
 }
+

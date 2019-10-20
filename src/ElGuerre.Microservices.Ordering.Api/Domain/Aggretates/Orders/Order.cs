@@ -43,7 +43,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders
 		}
 
 		public Order(string userId, string userName, Address address, int cardTypeId, string cardNumber,
-			string cardHolderName, DateTime cardExpiration, int? customerId = null, int? paymentMethodId = null)
+			string cardHolderName, DateTime cardExpiration, int? customerId = null, int? paymentMethodId = null) : this()
 		{
 			_orderStatusId = OrderStatus.Submitted;
 			CustomerId = customerId;

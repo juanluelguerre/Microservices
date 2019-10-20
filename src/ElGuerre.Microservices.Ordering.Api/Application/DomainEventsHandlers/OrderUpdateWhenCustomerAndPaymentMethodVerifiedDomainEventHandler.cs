@@ -12,15 +12,15 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Ordering.Api.Application.DomainEventsHandlers
 {
-	public class UpdateOrderWhenCustomerAndPaymentMethodVerifiedDomainEventHandler
+	public class OrderUpdateWhenCustomerAndPaymentMethodVerifiedDomainEventHandler
 				   : INotificationHandler<CustomerAndPaymentMethodVerifiedDomainEvent>
 	{
 		private readonly IMediator _mediator;
 		private readonly IOrderRepository _orderRepository;
 		private readonly ILogger _logger;
 
-		public UpdateOrderWhenCustomerAndPaymentMethodVerifiedDomainEventHandler(
-			ILogger<UpdateOrderWhenCustomerAndPaymentMethodVerifiedDomainEventHandler> logger,
+		public OrderUpdateWhenCustomerAndPaymentMethodVerifiedDomainEventHandler(
+			ILogger<OrderUpdateWhenCustomerAndPaymentMethodVerifiedDomainEventHandler> logger,
 			IOrderRepository orderRepository,
 		IMediator mediator)
 		{			

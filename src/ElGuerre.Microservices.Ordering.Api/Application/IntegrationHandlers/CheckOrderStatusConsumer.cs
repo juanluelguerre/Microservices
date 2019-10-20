@@ -26,7 +26,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Orders.Application.IntegrationHand
 		}
 
 		public async Task Consume(ConsumeContext<OrderCheckStatus> context)
-		{			
+		{
 			var commandQuery = new OrderByIdQuery(context.Message.OrderId);
 			var model = await _mediator.Send(commandQuery);
 			var order = model.ToOrder();

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Polly;
 using System;
 using System.Data.SqlClient;
@@ -75,7 +76,6 @@ namespace ElGuerre.Microservices.Shared.Extensions
 		private static void InvokeSeeder<TContext>(Action<TContext, IServiceProvider> seeder, TContext context, IServiceProvider services)
 			where TContext : DbContext
 		{
-
 			if (!Configuration.GetValue<bool>("DBInMemory"))
 			{
 				context.Database.Migrate();

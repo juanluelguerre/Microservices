@@ -20,7 +20,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 
 		public async Task SeedAsync(OrderingContext dbContext,
 			IHostingEnvironment env,
-			IOptions<OrdersSettings> settings,
+			IOptions<OrderingSettings> settings,
 			ILogger<OrderingContextSeed> logger)
 		{
 			var policy = CreatePolicy(logger, nameof(OrderingContextSeed));
@@ -37,8 +37,8 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 				var address = new Address("Street 1", "City 1", "Spain", "28000");
 
 				dbContext.Payments.AddRange(
-					new PaymentMethod(1, "Amex", "100100XAB120", "Juanlu", DateTime.Now.AddDays(60)),
-					new PaymentMethod(2, "Visa", "200200XAB120", "Juanlu", DateTime.Now.AddMonths(6))
+					new PaymentMethod(1, "Amex", "100100XAB120", "Juanlu", DateTime.UtcNow.AddDays(60)),
+					new PaymentMethod(2, "Visa", "200200XAB120", "Juanlu", DateTime.UtcNow.AddMonths(6))
 					);
 
 				dbContext.OrderStatus.AddRange(
@@ -52,9 +52,8 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 
 
 				dbContext.Orders.AddRange(
-					new Order(Guid.NewGuid().ToString("N"), "Juanlu", address, 1, "AB100100100", "Juanlu", DateTime.Now.AddYears(1))
+					new Order(Guid.NewGuid().ToString("N"), "Juanlu", address, 1, "AB100100100", "Juanlu", DateTime.UtcNow.AddYears(1))
 				);
-				//await dbContext.SaveChangesAsync();
 
 				await dbContext.SaveChangesAsync();
 			});
@@ -68,7 +67,12 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 					sleepDurationProvider: retry => TimeSpan.FromSeconds(5),
 					onRetry: (exception, timeSpan, retry, ctx) =>
 					{
-						logger.LogWarning(exception, "[{prefix}] Exception {ExceptionType} with message {Message} detected on attempt {retry} of {retries}", prefix, exception.GetType().Name, exception.Message, retry, retries);
+						logger.LogWarning(exception,
+							"[{prefix}] Exception {ExceptionType} with message {Message} detected on attempt {retry} of {retries}",
+							prefix, exception.GetType().Name,
+							exception.Message,
+							retry,
+							retries);
 					}
 				);
 

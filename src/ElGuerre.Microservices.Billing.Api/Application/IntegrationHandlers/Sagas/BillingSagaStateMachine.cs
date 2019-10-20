@@ -15,28 +15,33 @@ using System.Threading.Tasks;
 namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 {
 	// https://masstransit-project.com/MassTransit/advanced/sagas/automatonymous.html	
-	public class BillingStateMachine : MassTransitStateMachine<BillingState>, ISaga
+	public class BillingSagaStateMachine : MassTransitStateMachine<BillingSagaState>, ISaga
 	{
 		private readonly ILogger _logger;
-		// private readonly IMediator _mediator;
+		private readonly IMediator _mediator;
 
 		public Guid CorrelationId { get; set; }
 		public State Billed { get; private set; }
 		public Event<OrderReadyToBillMessage> OrderReadyToBillEvent { get; private set; }
 
-		public BillingStateMachine(ILoggerFactory loggerFactory /*, IMediator mediator */)
+		public BillingSagaStateMachine(ILogger<BillingSagaStateMachine> logger, IMediator mediator)
 		{
-			_logger = loggerFactory.CreateLogger<BillingStateMachine>();
-			// _mediator = mediator;
+			_logger = logger;
+			_mediator = mediator;
 
 			InstanceState(x => x.CurrentState);
 
+			DefineStates();
+		}
+
+		private void DefineStates()
+		{
 			Event(() => OrderReadyToBillEvent,
 				x =>
 				{
 					x.CorrelateById(context => context.Message.CorrelationId);
 					x.InsertOnInitial = true;
-					x.SetSagaFactory(ctx => new BillingState
+					x.SetSagaFactory(ctx => new BillingSagaState
 					{
 						CorrelationId = ctx.ConversationId ?? NewId.NextGuid(),
 						OrderId = ctx.Message.OrderId,
@@ -96,6 +101,5 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 
 			SetCompletedWhenFinalized();
 		}
-
 	}
 }

@@ -29,7 +29,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Queries
 			if (entityOrder != null)
 			{
 				await _dbContext.Entry(entityOrder)
-					.Reference(a => a.OrderItems).LoadAsync();
+					.Collection(a => a.OrderItems).LoadAsync();
 				await _dbContext.Entry(entityOrder)
 					.Reference(i => i.OrderStatus).LoadAsync();
 				await _dbContext.Entry(entityOrder).Reference(a => a.Address)

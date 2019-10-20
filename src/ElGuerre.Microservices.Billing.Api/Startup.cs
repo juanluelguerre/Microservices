@@ -30,30 +30,34 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using MediatR;
+using Microsoft.AspNetCore.Http;
+using ElGuerre.Microservices.Shared.Behaviors;
+using FluentValidation.AspNetCore;
 
 namespace ElGuerre.Microservices.Billing.Api
 {
 	public class Startup
 	{
 		public readonly IConfiguration _configuration;
-		public readonly ILoggerFactory _loggerFactory;		
+		public readonly BillingSettings _settings;
 
-		public Startup(ILoggerFactory loggerFactory, IConfiguration configuration)
+		public Startup(IConfiguration configuration)
 		{
 			_configuration = configuration;
-			_loggerFactory = loggerFactory;	
-		}		
+			_settings = _configuration.GetSection(Program.AppName).Get<BillingSettings>();
+		}
 
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services
-				.AddCustomDbContext(_configuration)
+			services				
 				.AddCustomServices()
+				.AddCustomMediatR()
+				.AddCustomDbContext(_configuration,_settings)
 				.AddCustomSwagger()
-				// .AddCustomDbContext(Configuration)
-				.AddCustomMassTransitAzureServiceBus(_loggerFactory, false)
+				.AddCustomConfiguration(_configuration)
 				// .AddCustomMassTransitRabbitMQ()
+				.AddCustomMassTransitAzureServiceBus(_settings, isSagaTest: false)
 				.AddCustomMVC();
 		}
 
@@ -80,42 +84,44 @@ namespace ElGuerre.Microservices.Billing.Api
 
 			app.UseHttpsRedirection();
 			// app.UseAuthentication();
-			app.UseMvc();				
+			app.UseMvc();
 		}
 	}
 
 	internal static class CustomExtensionMethods
 	{
-		private const string DATABASE_CONNECIONSTRING = "DataBaseConnection";
-
-		public static IServiceCollection AddCustomMassTransitAzureServiceBus(this IServiceCollection services, ILoggerFactory loggerFactory, bool isSagaTest)
+		public static IServiceCollection AddCustomMassTransitAzureServiceBus(
+			this IServiceCollection services,
+			BillingSettings settings,
+			bool isSagaTest)
 		{
 			services.AddMassTransit(options =>
 			{
 				options.AddConsumersFromNamespaceContaining<OrderReadyToBillIntegrationEventHandler>();
-				
+
 				options.AddBus(provider => Bus.Factory.CreateUsingAzureServiceBus(cfg =>
 				{
 					// cfg.EnablePartitioning = true; // Message Broker is enabled !
 					cfg.RequiresSession = !isSagaTest;
 					cfg.UseJsonSerializer();
 
-					// var host = cfg.Host("#CONNECTION_STRING#", hostConfig =>
-					var host = cfg.Host(new Uri("sb://loanmesb2.servicebus.windows.net/"), hostConfig =>
+					// var host = cfg.Host(settings.EventBusConnectionString, hostConfig =>
+					var host = cfg.Host(settings.EventBusUrl, hostConfig =>					
 					{
 						// hostConfig.ExchangeType = ExchangeType.Topic;
 						// hostConfig.TransportType = Microsoft.Azure.ServiceBus.TransportType.AmqpWebSockets;
-						hostConfig.RetryLimit = 3;
-						hostConfig.OperationTimeout = TimeSpan.FromMinutes(1);						
+						// hostConfig.RetryLimit = 3;
+						hostConfig.OperationTimeout = TimeSpan.FromMinutes(1);
+						
 						hostConfig.SharedAccessSignature(x =>
-						{							
-							x.KeyName = "RootManageSharedAccessKey";
-							x.SharedAccessKey = "5Gl5GvrBEX53QLElJd2nEc+tnVi4RoQzTJ9b4SttDVI=";
-
+						{
+							x.KeyName = settings.EventBusKeyName;
+							x.SharedAccessKey = settings.EventBusSharedAccessKey;
 							// https://github.com/Azure/azure-service-bus-dotnet/issues/399
 							// without this line MassTransit sets the Token TTL to 0.00 instead of null
 							x.TokenTimeToLive = TimeSpan.FromDays(1);
-						});						
+						});
+						
 					});
 
 					//cfg.Send<OrderBilledSuccessfully>(x =>
@@ -128,39 +134,58 @@ namespace ElGuerre.Microservices.Billing.Api
 					//	});
 					//});
 
+					//cfg.Send<IEvent>(x =>
+					//// cfg.Send<OrderReadyToBillMessage>(x =>
+					//{
+					//	x.UseSessionIdFormatter(context =>
+					//	{
+					//		var sessionId = context.CorrelationId.ToString();
+					//		context.SetReplyToSessionId(sessionId);
+					//		return sessionId;
+					//	});
+					//});
+
 					cfg.ReceiveEndpoint(host, "saga_billing_queue", e =>
 					{
-						ISagaRepository<BillingState> sagaRepository;
-						if (isSagaTest)
+						//e.UseCircuitBreaker(cb =>
+						//{
+						//	cb.TrackingPeriod = TimeSpan.FromMinutes(1);
+						//	cb.TripThreshold = 15;
+						//	cb.ActiveThreshold = 10;
+						//	cb.ResetInterval = TimeSpan.FromMinutes(5);
+						//});
+
+						e.UseMessageRetry(r =>
 						{
-							sagaRepository = new InMemorySagaRepository<BillingState>();
-						}
-						else
-						{							
-							e.RequiresSession = true;
-							sagaRepository = new MessageSessionSagaRepository<BillingState>();
-						}
+							r.Interval(4, TimeSpan.FromSeconds(30));
+						});
+
 						// All messages that should be published, are collected in a buffer, which is called “outbox”
-						// e.UseInMemoryOutbox();
+						//e.UseInMemoryOutbox();
 
 						//e.SubscribeMessageTopics = true;
 						//e.RemoveSubscriptions = true;
 						// e.EnablePartitioning = true;  // Message Broker is enabled !
 						e.MessageWaitTimeout = TimeSpan.FromMinutes(5);
 
-						var sagaMachine = new BillingStateMachine(loggerFactory);
-						e.StateMachineSaga(sagaMachine, sagaRepository);
+						e.RequiresSession = !isSagaTest;
+						e.StateMachineSaga(provider.GetRequiredService<BillingSagaStateMachine>(),
+							provider.GetRequiredService<ISagaRepository<BillingSagaState>>());
 					});
-
-					//var result = provider.GetProbeResult();
-					//var logger = loggerFactory.CreateLogger<Startup>();
-					//logger.LogTrace(result.ToJsonString());
 				}));
 			});
-			
+
+			// services.AddSingleton<ISendEndpointProvider>(provider => provider.GetRequiredService<IBusControl>());
+
 			// Required to start Bus Service.
 			services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, BusHostedService>();
-			// services.AddSingleton<ISagaRepository<BillingState>, MessageSessionSagaRepository<BillingState>>();
+
+			if (isSagaTest)
+				services.AddSingleton<ISagaRepository<BillingSagaState>, InMemorySagaRepository<BillingSagaState>>();
+			else
+				services.AddSingleton<ISagaRepository<BillingSagaState>, MessageSessionSagaRepository<BillingSagaState>>();
+
+			services.AddSingleton<BillingSagaStateMachine>();
 
 			return services;
 		}
@@ -168,28 +193,61 @@ namespace ElGuerre.Microservices.Billing.Api
 		public static IServiceCollection AddCustomMassTransitRabbitMQ(this IServiceCollection services)
 		{
 			services.AddMassTransit(options =>
-			{						
+			{
 				// options.AddConsumersFromNamespaceContaining<ElGuerre.Microservices.Sales.Api.Application.Sagas.OrderConsumer>();
-				options.AddConsumer<OrderReadyToBillIntegrationEventHandler>();				
+				options.AddConsumer<OrderReadyToBillIntegrationEventHandler>();
 
 				options.AddBus(provider => Bus.Factory.CreateUsingRabbitMq(cfg =>
 				{
 					var host = cfg.Host(new Uri("rabbitmq://localhost/"), hostConfig =>
 					{
 						hostConfig.Username("guest");
-						hostConfig.Password("guest");						
+						hostConfig.Password("guest");
 					});
 
 					cfg.ReceiveEndpoint(e =>
 					{
 						//e.Consumer<OrderReadyToBillIntegrationEventHandler>();
-						
+
 					});
 				}));
 			});
 
 			// Required to start Bus Service.
 			services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, BusHostedService>();
+
+			return services;
+		}
+
+		public static IServiceCollection AddCustomMediatR(this IServiceCollection services)
+		{
+			services.AddMediatR(typeof(Startup));
+			// services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidatorPipelineBehavior<,>));
+
+			return services;
+		}
+
+		public static IServiceCollection AddCustomConfiguration(this IServiceCollection services, IConfiguration configuration)
+		{
+			services.AddOptions();
+			services.Configure<BillingSettings>(_ => configuration.GetSection(Program.AppName).Get<BillingSettings>());
+			services.Configure<ApiBehaviorOptions>(options =>
+			{
+				options.InvalidModelStateResponseFactory = context =>
+				{
+					var problemDetails = new ValidationProblemDetails(context.ModelState)
+					{
+						Instance = context.HttpContext.Request.Path,
+						Status = StatusCodes.Status400BadRequest,
+						Detail = "Please refer to the errors property for additional details."
+					};
+
+					return new BadRequestObjectResult(problemDetails)
+					{
+						ContentTypes = { "application/problem+json", "application/problem+xml" }
+					};
+				};
+			});
 
 			return services;
 		}
@@ -198,12 +256,13 @@ namespace ElGuerre.Microservices.Billing.Api
 		{
 			services.AddMvc()
 				.SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+				.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
 				.AddControllersAsServices();
 
 			services.AddCors(options =>
 			{
 				options.AddPolicy("CorsPolicy",
-					builder => builder					
+					builder => builder
 					.SetIsOriginAllowed((host) => true)
 					.WithMethods(
 						"GET",
@@ -218,15 +277,13 @@ namespace ElGuerre.Microservices.Billing.Api
 			return services;
 		}
 
-		public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
+		public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration, BillingSettings settings)
 		{
 			services.AddDbContext<BillingContext>(options =>
 			{
-				var dbInMemory = configuration.GetValue<bool>("DBInMemory");
-
-				if (dbInMemory)
+				if (configuration.GetValue<bool>("DBInMemory"))
 				{
-					options.UseInMemoryDatabase("Modulo1DB",
+					options.UseInMemoryDatabase("BillingDB",
 						(ops) =>
 						{
 
@@ -234,7 +291,7 @@ namespace ElGuerre.Microservices.Billing.Api
 				}
 				else
 				{
-					options.UseSqlServer(configuration.GetConnectionString(DATABASE_CONNECIONSTRING),
+					options.UseSqlServer(settings.OrdersDBConnectionString,
 										 sqlServerOptionsAction: sqlOptions =>
 										 {
 											 sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
@@ -257,7 +314,7 @@ namespace ElGuerre.Microservices.Billing.Api
 			services.AddSwaggerGen(options =>
 			{
 				options.DescribeAllEnumsAsStrings();
-                options.EnableAnnotations();
+				options.EnableAnnotations();
 				options.SwaggerDoc("v1", new Info
 				{
 					Version = "v1.0.0",
@@ -265,10 +322,10 @@ namespace ElGuerre.Microservices.Billing.Api
 					Description = "API to expose logic for ElGuerre.Microservices.Sales",
 					TermsOfService = ""
 				});
-                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-                options.IncludeXmlComments(xmlPath);
-            });
+				var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+				var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+				options.IncludeXmlComments(xmlPath);
+			});
 
 			return services;
 		}

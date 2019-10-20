@@ -4,6 +4,7 @@ using ElGuerre.Microservices.Messages.Orders;
 using ElGuerre.Microservices.Ordering.Api.Application.Commands;
 using MassTransit;
 using MassTransit.Saga;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,20 +16,28 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sa
 	//
 	// https://masstransit-project.com/MassTransit/advanced/sagas/automatonymous.html
 	//
-	public class OrdersStateMachine : MassTransitStateMachine<SalesState> , ISaga
+	public class OrdersSagaStateMachine : MassTransitStateMachine<OrderSagaState>, ISaga
 	{
 		private readonly ILogger _logger;
+		private readonly IMediator _mediator;
 		public Guid CorrelationId { get; set; }
+
+		public State Failed { get; private set; }
 		public State Billed { get; private set; }
-		// public Event<OrderSartedMessage> OrderStartedEvent { get; private set; }		
 		public Event<OrderBillSuccededMessage> OrderBilledSuccededEvent { get; private set; }
 
-		public OrdersStateMachine(ILoggerFactory loggerFactory)
+		public OrdersSagaStateMachine(ILogger<OrdersSagaStateMachine> logger, IMediator mediator)
 		{
-			_logger = loggerFactory.CreateLogger<OrdersStateMachine>();
+			_mediator = mediator;
+			_logger = logger;
 
 			InstanceState(x => x.CurrentState);
-						
+
+			DefineStates();
+		}
+
+		private void DefineStates()
+		{
 			///
 			// Event(() => OrderBilledSuccessfully, x => { x.CorrelateById(order => order.CorrelationId), context => context.Message.CorrelationId); });
 
@@ -48,7 +57,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sa
 			//	x.SelectId(context => context.Message.CorrelationId);
 
 			//});
-			
+
 			Event(() => OrderBilledSuccededEvent, x => x.CorrelateById(context => context.Message.CorrelationId));
 
 			//Initially(
@@ -70,20 +79,31 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sa
 
 			Initially(
 				When(OrderBilledSuccededEvent) // Order to Bill ! Billing Services is listening to apply Bill -> Billed !
-				.ThenAsync(async context =>
+					.ThenAsync(async context =>
 				{
 					// Billed Services published everything was OK, so payed/billed was done !
 
-					//var command = new OrderSetToBilledCommand(context.Data.OrderId);
-					//await _mediator.Send(command);
+
+					// var command = new OrderSetToBilledCommand(context.Data.OrderId);
+					// await _mediator.Send(command);
+
+
+					context.Instance.Name = "This is an updated Tests to know how udate Doamin using Repository or MediatR !!!!! ";
+					context.Instance.Amount = 99999;
+
 
 					_logger.LogInformation("Order Billed. The Pay was done successfully !!!");
-					await Task.CompletedTask;
 				})
+				//  .Publish(context => new OrderToPayMessage(context.Instance.OrderId, context.Instance.Amount))
+				.Catch<Exception>(ex => ex.Then(context =>
+					{
+						_logger.LogError($"Catch handled for {ex.Event.GetType().Name} wit name: {ex.Event.Name}");
+						context.Instance.CurrentState = Failed.ToString();
+					}))
 				.Finalize()
 				);
 
 			SetCompletedWhenFinalized();
-		}
 	}
+}
 }

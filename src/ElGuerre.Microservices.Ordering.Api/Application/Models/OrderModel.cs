@@ -9,8 +9,8 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Models
 	[JsonObject("Order")]
 	public class OrderModel
 	{
-		public string UserId { get; }
-		public string UserName { get; }
+		public string UserId { get; set; }
+		public string UserName { get; set; }
 
 		public int OrderNumber { get; set; }
 		public DateTime Date { get; set; }
@@ -20,7 +20,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Models
 		public string City { get; set; }
 		public string ZipCode { get; set; }
 		public string Country { get; set; }
-		public List<OrderItemModel> OrderItems { get; set; }
+		public List<OrderItemModel> OrderItems { get; set; } = new List<OrderItemModel>();
 		public decimal Total { get; set; }
 
 		public string CardNumber { get; set; }

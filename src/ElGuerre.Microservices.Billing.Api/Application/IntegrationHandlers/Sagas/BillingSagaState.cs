@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 {
-	public class BillingState : SagaStateMachineInstance
+	public class BillingSagaState : SagaStateMachineInstance
 	{
 		//public BillingState(Guid correlationId)
 		//{

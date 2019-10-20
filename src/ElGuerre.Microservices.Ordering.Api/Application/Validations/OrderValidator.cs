@@ -15,7 +15,17 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Validations
 	{
 		public OrderValidator()
 		{
+			// RuleSets allow you to group validation rules together which can be executed together as a group whilst ignoring other rules.
+			// RuleSet("Order", () =>
+			// {
+			//		RuleFor(..).NotNull()...;
+			// }
+
+			RuleFor(order => order.OrderNumber).NotNull().NotEmpty().GreaterThan(0);
 			RuleFor(order => order.Name).NotNull().NotEmpty();
+
+			RuleForEach(order => order.OrderItems).SetValidator(new OrderItemValidator());
+
 		}
 	}
 }

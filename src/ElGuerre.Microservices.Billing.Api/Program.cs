@@ -15,7 +15,7 @@ namespace ElGuerre.Microservices.Billing.Api
 	public class Program
 	{
 		public static readonly string Namespace = typeof(Program).Namespace;
-		public static readonly string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
+		public static readonly string AppName = Namespace.Split('.')[Namespace.Split('.').Length - 2];
 
 		public static int Main(string[] args)
 		{
@@ -93,14 +93,12 @@ namespace ElGuerre.Microservices.Billing.Api
 				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 				.AddEnvironmentVariables();
 
-			var config = builder.Build();
+			var config = builder.Build();	
 
 			//if (config.GetValue<bool>("UseVault", false))
 			//{
 			//	builder.AddAzureKeyVault(
-			//		$"https://{config["Vault:Name"]}.vault.azure.net/",
-			//		config["Vault:ClientId"],
-			//		config["Vault:ClientSecret"]);
+			//		$"https://{config["Vault:Name"]}.vault.azure.net/",config["Vault:ClientId"],config["Vault:ClientSecret"]);
 			//}
 
 			return builder.Build();

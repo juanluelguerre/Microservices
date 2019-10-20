@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sagas
 {
-	public class SalesState : SagaStateMachineInstance
+	public class OrderSagaState : SagaStateMachineInstance
 	{
 		public Guid CorrelationId { get; set; }
 		public Guid SessionId { get; set; }
