@@ -29,14 +29,14 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.EntityConfiguration
 			//	.HasMaxLength(100);
 
 
-			builder.ToTable("orders", OrdersContext.DEFAULT_SCHEMA);
+			builder.ToTable("orders", OrderingContext.DEFAULT_SCHEMA);
 
 			builder.HasKey(o => o.Id);
 
 			builder.Ignore(b => b.DomainEvents);
 
 			builder.Property(o => o.Id)
-				.ForSqlServerUseSequenceHiLo("orderseq", OrdersContext.DEFAULT_SCHEMA);
+				.ForSqlServerUseSequenceHiLo("orderseq", OrderingContext.DEFAULT_SCHEMA);
 
 			//Address value object persisted as owned entity type supported since EF Core 2.0
 			builder.OwnsOne(o => o.Address);

@@ -20,12 +20,10 @@ namespace ElGuerre.Microservices.Ordering.Api.Controllers
 	[ApiController]
 	public class OrdersController : ControllerBase
 	{
-		// private IOrdersService _ordersService;
 		private readonly IMediator _mediator;
 
-		public OrdersController(IMediator mediator /*IOrdersService ordersService*/)
+		public OrdersController(IMediator mediator)
 		{
-			// _ordersService = ordersService;
 			_mediator = mediator;
 		}
 
@@ -41,17 +39,12 @@ namespace ElGuerre.Microservices.Ordering.Api.Controllers
 		/// <param name="ids"></param>
 		/// <returns></returns>
 		[HttpGet]
-		[ProducesResponseType(typeof(PagedItemsViewModel<Order>), (int)HttpStatusCode.OK)]
-		[ProducesResponseType(typeof(IEnumerable<Order>), (int)HttpStatusCode.OK)]
+		[ProducesResponseType(typeof(PagedItemsViewModel<OrderModel>), (int)HttpStatusCode.OK)]
 		[ProducesResponseType((int)HttpStatusCode.BadRequest)]
 		public async Task<IActionResult> GetOrders(int pageIndex = 0, int pageSize = 10, string ids = null)
 		{
-			//var pagedItems = await _ordersService.GetOrders(pageIndex <= 0 ? 1 : pageIndex, pageSize <= 0 ? 10 : pageSize);
-			//var model = new PagedItemsViewModel<Order>(pagedItems.PageIndex, pagedItems.PageSize, pagedItems.TotalItems, pagedItems.Items);
-			//return Ok(model);
-
-			var query = new OrdersPagedQuery(pageIndex <= 0 ? 1 : pageIndex, pageSize <= 0 ? 10 : pageSize);
-			var result = await _mediator.Send(query);
+			var command = new OrderPagedQuery(pageIndex <= 0 ? 1 : pageIndex, pageSize <= 0 ? 10 : pageSize);
+			var result = await _mediator.Send(command);
 			return Ok(result);
 		}
 
@@ -61,12 +54,11 @@ namespace ElGuerre.Microservices.Ordering.Api.Controllers
 		/// <param name="id">Identificador del elemento a obtener</param>
 		/// <returns>Elemento con el id que se recibe como parámetro</returns>
 		[HttpGet("{id}")]
-		[ProducesResponseType(typeof(Order), (int)HttpStatusCode.OK)]
-		public async Task<IActionResult> GetOrder(int id)
+		[ProducesResponseType(typeof(OrderModel), (int)HttpStatusCode.OK)]
+		public async Task<IActionResult> GetOrder(int orderId)
 		{
-			// return Ok(await _ordersService.GetOrder(id));
-			var query = new OrdersByIdQuery(id);
-			var result = await _mediator.Send(query); ;
+			var command = new OrderByIdQuery(orderId);
+			var result = await _mediator.Send(command);
 			return Ok(result);
 		}
 
@@ -81,12 +73,16 @@ namespace ElGuerre.Microservices.Ordering.Api.Controllers
 
 		[HttpPost]
 		[ProducesResponseType(typeof(bool), (int)HttpStatusCode.OK)]
-		public async Task<IActionResult> UpdateOrder([FromBody]Order order)
+		public async Task<IActionResult> AddOrder([FromBody]OrderModel order)
 		{
-			//bool result = await _ordersService.PublishToBill(orderId);
-			//return Ok(result);
+			var command = new OrderCreateCommand(order.OrderItems,
+				order.UserId, order.UserName,
+				order.City, order.Street, order.Country, order.ZipCode, order.CardNumber,
+				order.CardHolderName, order.CardExpiration, order.CardTypeId);
 
-			return Ok(await Task.FromResult(true));
+			var result = await _mediator.Send(command);
+
+			return Ok(result);
 		}
 	}
 }

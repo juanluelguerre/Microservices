@@ -13,7 +13,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.EntityConfiguration
 	{
 		public void Configure(EntityTypeBuilder<CardType> cardTypesConfiguration)
 		{
-			cardTypesConfiguration.ToTable("cardtypes", OrdersContext.DEFAULT_SCHEMA);
+			cardTypesConfiguration.ToTable("cardtypes", OrderingContext.DEFAULT_SCHEMA);
 
 			cardTypesConfiguration.HasKey(ct => ct.Id);
 

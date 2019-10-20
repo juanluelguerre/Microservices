@@ -12,7 +12,7 @@ namespace ElGuerre.Microservices.Shared.Extensions
 {
 	static class MediatorExtensions
 	{
-		public static async Task DispatchDomainEventsAsync(this IMediator mediator, OrdersContext ctx)
+		public static async Task DispatchDomainEventsAsync(this IMediator mediator, OrderingContext ctx)
 		{
 			var domainEntities = ctx.ChangeTracker
 				.Entries<Entity>()

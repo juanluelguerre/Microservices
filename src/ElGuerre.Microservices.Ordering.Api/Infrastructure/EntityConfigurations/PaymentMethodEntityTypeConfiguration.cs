@@ -13,14 +13,14 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.EntityConfiguration
 	{
 		public void Configure(EntityTypeBuilder<PaymentMethod> paymentConfiguration)
 		{
-			paymentConfiguration.ToTable("paymentmethods", OrdersContext.DEFAULT_SCHEMA);
+			paymentConfiguration.ToTable("paymentmethods", OrderingContext.DEFAULT_SCHEMA);
 
 			paymentConfiguration.HasKey(b => b.Id);
 
 			paymentConfiguration.Ignore(b => b.DomainEvents);
 
 			paymentConfiguration.Property(b => b.Id)
-				.ForSqlServerUseSequenceHiLo("paymentseq", OrdersContext.DEFAULT_SCHEMA);
+				.ForSqlServerUseSequenceHiLo("paymentseq", OrderingContext.DEFAULT_SCHEMA);
 
 			paymentConfiguration.Property<int>("CustomerId")
 				.IsRequired();

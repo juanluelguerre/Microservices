@@ -40,7 +40,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders
 			_units = units;
 		}
 
-		public decimal GetCurrentDiscount()
+		public decimal GetDiscount()
 		{
 			return _discount;
 		}

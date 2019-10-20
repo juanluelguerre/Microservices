@@ -19,7 +19,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 	public static class Program
 	{
 		public static readonly string Namespace = typeof(Program).Namespace;
-		public static readonly string AppName = Namespace.Substring(Namespace.LastIndexOf('.', Namespace.LastIndexOf('.') - 1) + 1);
+		public static readonly string AppName = Namespace.Split('.')[Namespace.Split('.').Length-2];
 
 		public static int Main(string[] args)
 		{
@@ -33,13 +33,13 @@ namespace ElGuerre.Microservices.Ordering.Api
 				var host = BuildWebHost(configuration, args);
 
 				Log.Information("Applying migrations ({ApplicationContext})...", AppName);
-				host.MigrateDbContext<OrdersContext>((context, services) =>
+				host.MigrateDbContext<OrderingContext>((context, services) =>
 				{
 					var env = services.GetService<IHostingEnvironment>();
-					var settings = services.GetService<IOptions<OrdersSettings>>();
-					var logger = services.GetService<ILogger<OrdersContextSeed>>();
+					var settings = services.GetService<IOptions<OrderingSettings>>();
+					var logger = services.GetService<ILogger<OrderingContextSeed>>();
 
-					new OrdersContextSeed()
+					new OrderingContextSeed()
 						.SeedAsync(context, env, settings, logger)
 						.Wait();
 				});
@@ -98,8 +98,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
 				.AddEnvironmentVariables();
 
-			var config = builder.Build();
-
+			// var config = builder.Build();
 			//if (config.GetValue<bool>("UseVault", false))
 			//{
 			//	builder.AddAzureKeyVault(

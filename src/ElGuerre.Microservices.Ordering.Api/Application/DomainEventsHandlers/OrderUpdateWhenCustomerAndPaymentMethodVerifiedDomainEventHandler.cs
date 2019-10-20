@@ -1,5 +1,7 @@
-﻿using ElGuerre.Microservices.Ordering.Api.Domain.Events;
-using ElGuerre.Microservices.Ordering.Api.Domain.Orders;
+﻿using ElGuerre.Microservices.Ordering.Api.Application.Extensions;
+using ElGuerre.Microservices.Ordering.Api.Application.Queries;
+using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
+using ElGuerre.Microservices.Ordering.Api.Domain.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,18 +12,21 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Ordering.Api.Application.DomainEventsHandlers
 {
-	public class UpdateOrderWhenCustomerAndPaymentMethodVerifiedDomainEventHandler
+	public class OrderUpdateWhenCustomerAndPaymentMethodVerifiedDomainEventHandler
 				   : INotificationHandler<CustomerAndPaymentMethodVerifiedDomainEvent>
 	{
-		private readonly IOrdersRepository _orderRepository;
+		private readonly IMediator _mediator;
+		private readonly IOrderRepository _orderRepository;
 		private readonly ILogger _logger;
 
-		public UpdateOrderWhenCustomerAndPaymentMethodVerifiedDomainEventHandler(
-			ILogger<UpdateOrderWhenCustomerAndPaymentMethodVerifiedDomainEventHandler> logger,
-			IOrdersRepository orderRepository)
-		{
-			_orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+		public OrderUpdateWhenCustomerAndPaymentMethodVerifiedDomainEventHandler(
+			ILogger<OrderUpdateWhenCustomerAndPaymentMethodVerifiedDomainEventHandler> logger,
+			IOrderRepository orderRepository,
+		IMediator mediator)
+		{			
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+			_orderRepository = orderRepository ?? throw new ArgumentNullException(nameof(orderRepository));
+			_mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
 		}
 
 		// Domain Logic comment:
@@ -29,7 +34,10 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.DomainEventsHandlers
 		// then we can update the original Order with the BuyerId and PaymentId (foreign keys)
 		public async Task Handle(CustomerAndPaymentMethodVerifiedDomainEvent @event, CancellationToken cancellationToken)
 		{
-			var orderToUpdate = await _orderRepository.GetByIdAsync(@event.OrderId);
+			var command = new OrderByIdQuery(@event.OrderId);
+			var model = await _mediator.Send(command);
+
+			var orderToUpdate = model.ToOrder();
 			orderToUpdate.SetCustomerId(@event.Customer.Id);
 			orderToUpdate.SetPaymentId(@event.Payment.Id);
 						

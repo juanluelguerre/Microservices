@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 {
-	public class OrdersContext : DbContext, IUnitOfWork
+	public class OrderingContext : DbContext, IUnitOfWork
 	{
 		public const string DEFAULT_SCHEMA = "Ordering";
 		private readonly IMediator _mediator;
@@ -27,9 +27,9 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 		public DbSet<CardType> CardTypes { get; set; }
 		public DbSet<OrderStatus> OrderStatus { get; set; }
 
-		public OrdersContext() : base() { }        
+		public OrderingContext() : base() { }        
 
-        public OrdersContext(DbContextOptions<OrdersContext> options, IMediator mediator) : base(options)
+        public OrderingContext(DbContextOptions<OrderingContext> options, IMediator mediator) : base(options)
 		{
 			_mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));			
 		}
@@ -58,9 +58,9 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 			return true;
 		}
 
-		public class CatalogContextDesignFactory : IDesignTimeDbContextFactory<OrdersContext>
+		public class CatalogContextDesignFactory : IDesignTimeDbContextFactory<OrderingContext>
 		{
-			public OrdersContext CreateDbContext(string[] args)
+			public OrderingContext CreateDbContext(string[] args)
 			{
 				IConfigurationRoot configuration = new ConfigurationBuilder()
 				   .SetBasePath(Directory.GetCurrentDirectory())
@@ -68,11 +68,11 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure
 				   .AddJsonFile("appsettings.json")
 				   .Build();
 
-				var builder = new DbContextOptionsBuilder<OrdersContext>();
+				var builder = new DbContextOptionsBuilder<OrderingContext>();
 
 				builder.UseSqlServer(configuration.GetConnectionString("DataBaseConnection"));
 
-				return new OrdersContext(builder.Options, new NoMediator());
+				return new OrderingContext(builder.Options, new NoMediator());
 			}
 
 			class NoMediator : IMediator

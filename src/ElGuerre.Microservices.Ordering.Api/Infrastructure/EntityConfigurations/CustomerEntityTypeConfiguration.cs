@@ -13,14 +13,14 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.EntityConfiguration
 	{
 		public void Configure(EntityTypeBuilder<Customer> buyerConfiguration)
 		{
-			buyerConfiguration.ToTable("customers", OrdersContext.DEFAULT_SCHEMA);
+			buyerConfiguration.ToTable("customers", OrderingContext.DEFAULT_SCHEMA);
 
 			buyerConfiguration.HasKey(b => b.Id);
 
 			buyerConfiguration.Ignore(b => b.DomainEvents);
 
 			buyerConfiguration.Property(b => b.Id)
-				.ForSqlServerUseSequenceHiLo("customerseq", OrdersContext.DEFAULT_SCHEMA);
+				.ForSqlServerUseSequenceHiLo("customerseq", OrderingContext.DEFAULT_SCHEMA);
 
 			buyerConfiguration.Property(b => b.Identity)
 				.HasMaxLength(200)

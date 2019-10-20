@@ -20,14 +20,14 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.ViewModels
 		/// List of paged items according to <see cref="PageSize"/> and <see cref="PageIndex"/>.
 		/// Default value is an empty List of <typeparamref name="T"/>
 		/// </summary>		
-		public IEnumerable<TEntity> Data { get; private set; }
+		public IEnumerable<TEntity> Items { get; private set; }
 
 		public PagedItemsViewModel(int pageIndex, int pageSize, long count, IEnumerable<TEntity> data)
 		{
 			PageIndex = pageIndex;
 			PageSize = pageSize;
 			Count = count;
-			Data = data;
+			Items = data;
 		}
 	}
 }
