@@ -109,7 +109,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 			services.AddMassTransit(options =>
 			{
 				// Integration Events as Masstransit Consumers.
-				options.AddConsumersFromNamespaceContaining<OrderToPayConsumer>();				
+				// options.AddConsumersFromNamespaceContaining<OrderToPayConsumer>();				
 
 				options.AddBus(provider => Bus.Factory.CreateUsingAzureServiceBus(cfg =>
 				{

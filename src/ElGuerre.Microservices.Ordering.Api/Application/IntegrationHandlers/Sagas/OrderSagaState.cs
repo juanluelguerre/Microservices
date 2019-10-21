@@ -12,7 +12,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.IntegrationHandlers.Sa
 		public Guid CorrelationId { get; set; }
 		public Guid SessionId { get; set; }
 
-		public string CurrentState { get; set; }
+		public int CurrentState { get; set; }
 		//public Guid? ExpirationId { get; set; }
 
 		//public bool IsOrdered { get; set; }		
