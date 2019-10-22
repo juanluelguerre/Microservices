@@ -1,9 +1,10 @@
 ﻿using ElGuerre.Microservices.Ordering.Api.Domain;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
-using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
+using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
+using ElGuerre.Microservices.Ordering.Api.Extensions;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories;
-using ElGuerre.Microservices.Shared.Extensions;
+using ElGuerre.Microservices.Shared;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;

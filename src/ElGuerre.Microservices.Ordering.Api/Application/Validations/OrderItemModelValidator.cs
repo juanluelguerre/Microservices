@@ -11,9 +11,9 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Validations
 	/// Order Validation to be sure its properties have correct values.
 	/// </summary>
 	/// <seealso cref="https://fluentvalidation.net/start"/>
-	public class OrderItemValidator : AbstractValidator<OrderItemModel>
+	public class OrderItemModelValidator : AbstractValidator<OrderItemModel>
 	{
-		public OrderItemValidator()
+		public OrderItemModelValidator()
 		{
 			RuleFor(order => order.ProductId).NotNull().NotEmpty().GreaterThan(0);
 			RuleFor(order => order.ProductName).NotNull().NotEmpty();

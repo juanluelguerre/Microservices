@@ -109,7 +109,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 			services.AddMassTransit(options =>
 			{
 				// Integration Events as Masstransit Consumers.
-				options.AddConsumersFromNamespaceContaining<OrderToPayConsumer>();				
+				// options.AddConsumersFromNamespaceContaining<OrderToPayConsumer>();				
 
 				options.AddBus(provider => Bus.Factory.CreateUsingAzureServiceBus(cfg =>
 				{
@@ -296,7 +296,7 @@ namespace ElGuerre.Microservices.Ordering.Api
 			.AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Startup>())
 			.AddControllersAsServices();
 
-			 services.AddTransient(typeof(IValidator<OrderValidator>), typeof(OrderValidator));
+			 services.AddTransient(typeof(IValidator<OrderModelValidator>), typeof(OrderModelValidator));
 
 			services.AddCors(options =>
 			{

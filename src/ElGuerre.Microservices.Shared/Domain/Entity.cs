@@ -1,10 +1,8 @@
 ﻿using MediatR;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace ElGuerre.Microservices.Ordering.Api.Domain
+namespace ElGuerre.Microservices.Shared
 {
 	public abstract class Entity
 	{

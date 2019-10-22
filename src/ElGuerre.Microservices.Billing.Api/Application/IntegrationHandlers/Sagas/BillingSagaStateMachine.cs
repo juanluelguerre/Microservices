@@ -2,6 +2,7 @@
 using ElGuerre.Microservices.Billing.Api.Application.Commands;
 using ElGuerre.Microservices.Billing.Api.Domain.Exceptions;
 using ElGuerre.Microservices.Messages;
+using ElGuerre.Microservices.Messages.Orders;
 using ElGuerre.Microservices.Shared.Infrastructure;
 using MassTransit;
 using MassTransit.Saga;
@@ -21,35 +22,42 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 		private readonly IMediator _mediator;
 
 		public Guid CorrelationId { get; set; }
+		public State Failed { get; private set; }
+		public State ReadyToBill { get; private set; }
 		public State Billed { get; private set; }
-		public Event<OrderReadyToBillMessage> OrderReadyToBillEvent { get; private set; }
 
+		public Event<OrderReadyToBillMessage> OrderReadyToBillEvent { get; private set; }
+		public Event<Fault<OrderReadyToBillMessage>> OrderReadyToBillFaulted { get; private set; }
+		public Event<OrderBillSuccededMessage> OrderBilledEvent { get; private set; }
+		
 		public BillingSagaStateMachine(ILogger<BillingSagaStateMachine> logger, IMediator mediator)
 		{
 			_logger = logger;
 			_mediator = mediator;
 
-			InstanceState(x => x.CurrentState);
+			InstanceState(x => x.CurrentState, ReadyToBill, Billed, Failed);
 
 			DefineStates();
 		}
 
+
 		private void DefineStates()
 		{
 			Event(() => OrderReadyToBillEvent,
-				x =>
-				{
-					x.CorrelateById(context => context.Message.CorrelationId);
-					x.InsertOnInitial = true;
-					x.SetSagaFactory(ctx => new BillingSagaState
+					x =>
 					{
-						CorrelationId = ctx.ConversationId ?? NewId.NextGuid(),
-						OrderId = ctx.Message.OrderId,
+						x.CorrelateById(context => context.Message.CorrelationId);
+						x.InsertOnInitial = true;
+						x.SetSagaFactory(ctx => new BillingSagaState
+						{
+							CorrelationId = ctx.ConversationId ?? NewId.NextGuid(),
+							OrderId = ctx.Message.OrderId,
+						});
+						x.SelectId(context => context.Message.CorrelationId);
 					});
-					x.SelectId(context => context.Message.CorrelationId);
-				});
-
-			// Event(() => OrderBilledSuccessfullyEvent, x => x.CorrelateById(context => context.Message.CorrelationId));			   
+			Event(() => OrderReadyToBillFaulted, x => x.CorrelateById(context => context.Message.Message.CorrelationId));
+				
+			Event(() => OrderBilledEvent, x => x.CorrelateById(context => context.Message.CorrelationId));			   
 
 			Initially(
 				When(OrderReadyToBillEvent)
@@ -60,44 +68,44 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 					.ThenAsync(async context =>
 					{
 						_logger.LogInformation($"Order ready to bill: {context.Data.OrderId} to {context.Instance.CorrelationId}");
+						await Task.CompletedTask;
 
 						//TODO: Simulate 
 						// var command = new OrderReadyToBillCommand(context.Instance.OrderId);
-						// var result = await _mediator.Send(command);
-						// await Task.CompletedTask;
+						// var result = await _mediator.Send(command);						
+						// if (result) { }
 
+						// Force an exception
 						//throw new BillingException();						
 					})
 					.Publish(context => new OrderBillSuccededMessage(context.Instance.OrderId) { CorrelationId = context.Instance.CorrelationId })
-					//.Catch<Exception>(ex =>
-					//{
-					//	// TODO: Treat exceptions
-
-					//	//TODO: Publish AbortedEvent !!!!!
-
-					//	return rew BillingException();
-					//})
-
+					.TransitionTo(Billed)
+					// 
+					// https://stackoverflow.com/questions/47267504/finalizing-saga-on-exception
+					//
+					.Catch<Exception>(ex =>
+						ex.Then(context =>
+						{
+							_logger.LogError($"Catch handled for {ex.Event.GetType().Name} wit name: {ex.Event.Name}");
+						})
+						.TransitionTo(Failed))					
+				);
+			
+			During(Billed,
+				When(OrderBilledEvent)
+					// .Publish(context => new OrderBillSuccededMessage(context.Instance.OrderId) { CorrelationId = context.Instance.CorrelationId })
 					.Finalize()
-			);
+				);
 
-			//During(Billed,
-			//	When(OrderBilledEvent)
-			//		.Then(context =>
-			//		{
-			//			_logger.LogInformation("Billed ! Next transport ready the product will ber shipped !");
-			//		})
-			//		//.ThenAsync(async context=>
-			//		//{
-			//		//	_logger.LogInformation($"Order billed Successfully: {context.Data.OrderId} to {context.Instance.CorrelationId}");
-			//		//})					
-			//		.ThenAsync(async context =>
-			//		{
-			//			_logger.LogInformation($"Order billed Successfully: {context.Data.OrderId} to {context.Instance.CorrelationId}");
-			//		})
-			//		.Publish(context => new OrderBilledSuccessfully(context.Instance.OrderId, context.Instance.Amount))
-			//		.Finalize()
-			//	);
+			During(Failed,
+				When(OrderReadyToBillFaulted)
+					.Then(context =>
+					{
+						_logger.LogInformation("Error to Bill !!!");
+					})
+					.Publish(context => new OrderReadyToBillFailed(context.Instance.OrderId, ""))
+					.Finalize()
+				);
 
 			SetCompletedWhenFinalized();
 		}

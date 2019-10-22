@@ -2,6 +2,7 @@
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
 using ElGuerre.Microservices.Ordering.Api.Domain.Customers;
+using ElGuerre.Microservices.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -11,60 +12,26 @@ using System.Threading.Tasks;
 namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories
 {
 	public class CustomerRepository : ICustomerRepository
-	{		 
-        private readonly OrderingContext _context;
-		public IUnitOfWork UnitOfWork
-		{
-			get
-			{
-				return _context;
-			}
-		}
+	{
+		private readonly OrderingContext _dbContext;
 
-		public CustomerRepository(OrderingContext context)
+		public IUnitOfWork UnitOfWork => _dbContext;
+
+		public CustomerRepository(OrderingContext dbcontext)
 		{
-			_context = context ?? throw new ArgumentNullException(nameof(context));
+			_dbContext = dbcontext;
 		}
 
 		public Customer Add(Customer customer)
 		{
-			if (customer.IsTransient())
-			{
-				return _context.Customers
-					.Add(customer)
-					.Entity;
-			}
-			else
-			{
-				return customer;
-			}
+			return _dbContext.Add(customer).Entity;			
 		}
 
 		public Customer Update(Customer customer)
 		{
-			return _context.Customers
-					.Update(customer)
-					.Entity;
+			_dbContext.Entry(customer).State = EntityState.Modified;
+			return _dbContext.Entry(customer).Entity;
 		}
 
-		public async Task<Customer> FindAsync(string customerIdentity)
-		{
-			var customer = await _context.Customers
-				.Include(b => b.PaymentMethods)
-				.Where(b => b.Identity == customerIdentity)
-				.SingleOrDefaultAsync();
-
-			return customer;
-		}
-
-		public async Task<Customer> FindByIdAsync(int customerId)
-		{
-			var customer = await _context.Customers
-				.Include(b => b.PaymentMethods)
-				.Where(b => b.Id == customerId)
-				.SingleOrDefaultAsync();
-
-			return customer;
-		}
 	}
 }

@@ -3,6 +3,7 @@ using ElGuerre.Microservices.Ordering.Api.Domain.Events;
 using ElGuerre.Microservices.Ordering.Api.Domain.Exceptions;
 using ElGuerre.Microservices.Ordering.Api.Domain.ValueObjects;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories;
+using ElGuerre.Microservices.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;

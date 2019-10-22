@@ -1,6 +1,7 @@
 ﻿using ElGuerre.Microservices.Ordering.Api.Domain;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure;
+using ElGuerre.Microservices.Shared;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ElGuerre.Microservices.Shared.Extensions
+namespace ElGuerre.Microservices.Ordering.Api.Extensions
 {
 	static class MediatorExtensions
 	{

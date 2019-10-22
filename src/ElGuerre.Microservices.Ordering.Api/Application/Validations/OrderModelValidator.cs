@@ -11,9 +11,9 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Validations
 	/// Order Validation to be sure its properties have correct values.
 	/// </summary>
 	/// <seealso cref="https://fluentvalidation.net/start"/>
-	public class OrderValidator : AbstractValidator<OrderModel>
+	public class OrderModelValidator : AbstractValidator<OrderModel>
 	{
-		public OrderValidator()
+		public OrderModelValidator()
 		{
 			// RuleSets allow you to group validation rules together which can be executed together as a group whilst ignoring other rules.
 			// RuleSet("Order", () =>
@@ -24,7 +24,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Validations
 			RuleFor(order => order.OrderNumber).NotNull().NotEmpty().GreaterThan(0);
 			RuleFor(order => order.Name).NotNull().NotEmpty();
 
-			RuleForEach(order => order.OrderItems).SetValidator(new OrderItemValidator());
+			RuleForEach(order => order.OrderItems).SetValidator(new OrderItemModelValidator());
 
 		}
 	}

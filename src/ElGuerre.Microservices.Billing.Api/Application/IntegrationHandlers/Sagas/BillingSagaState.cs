@@ -14,7 +14,7 @@ namespace ElGuerre.Microservices.Sales.Api.Application.IntegrationHandlers.Sagas
 		//}
 
 		public Guid CorrelationId { get; set; }		
-		public string CurrentState { get; set; }
+		public int CurrentState { get; set; }
 		public Guid? ExpirationId { get; set; }
 
 		public bool IsOrdered { get; set; }

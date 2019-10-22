@@ -1,6 +1,7 @@
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
 using ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories;
+using ElGuerre.Microservices.Shared;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +12,5 @@ namespace ElGuerre.Microservices.Ordering.Api.Domain.Customers
 	{
 		Customer Add(Customer buyer);
 		Customer Update(Customer buyer);
-		Task<Customer> FindAsync(string customerIdentity);
-		Task<Customer> FindByIdAsync(int customerId);
 	}
 }
