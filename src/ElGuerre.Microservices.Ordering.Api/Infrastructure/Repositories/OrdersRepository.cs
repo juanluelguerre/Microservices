@@ -1,5 +1,6 @@
 ﻿using ElGuerre.Microservices.Ordering.Api.Domain;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
+using ElGuerre.Microservices.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -21,8 +22,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Infrastructure.Repositories
 		
 		public Order Add(Order order)
 		{
-			return _dbContext.Add(order).Entity;
-			// return await _dbContext.SaveChangesAsync() > 0;
+			return _dbContext.Add(order).Entity;			
 		}
 
 		public void Update(Order order)

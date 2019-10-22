@@ -1,6 +1,9 @@
 ﻿using ElGuerre.Microservices.Messages;
-using ElGuerre.Microservices.Ordering.Api.Domain.Events;
+using ElGuerre.Microservices.Ordering.Api.Application.Queries;
+using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
 using ElGuerre.Microservices.Ordering.Api.Domain.Customers;
+using ElGuerre.Microservices.Ordering.Api.Domain.Events;
+using ElGuerre.Microservices.Shared.Infrastructure;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -9,20 +12,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
-using ElGuerre.Microservices.Shared.Infrastructure;
 
 namespace ElGuerre.Microservices.Ordering.Api.Application.DomainEventHandlers
 {
 	public class OrderStartedEventHandler : INotificationHandler<OrderStartedDomainEvent>
 	{
 		private readonly ILogger _logger;
+		private readonly ICustomerQuery _customerQuery;
 		private readonly ICustomerRepository _customerRepository;		
 		private IIntegrationService _integrationService;
 
-		public OrderStartedEventHandler(ILogger<OrderStartedEventHandler> logger, ICustomerRepository customerRepository, IIntegrationService integrationService)
+		public OrderStartedEventHandler(ILogger<OrderStartedEventHandler> logger, ICustomerQuery customerQuery, ICustomerRepository customerRepository, IIntegrationService integrationService)
 		{
 			_logger = logger;
+			_customerQuery = customerQuery;
 			_customerRepository = customerRepository;
 			_integrationService = integrationService;
 		}
@@ -33,7 +36,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.DomainEventHandlers
 
 			var cardTypeId = (@event.CardTypeId != 0) ? @event.CardTypeId : 1;
 
-			var customer = await _customerRepository.FindAsync(@event.UserId);
+			var customer = await _customerQuery.FindAsync(@event.UserId);			
 
 			bool customerOriginallyExisted = (customer == null) ? false : true;
 

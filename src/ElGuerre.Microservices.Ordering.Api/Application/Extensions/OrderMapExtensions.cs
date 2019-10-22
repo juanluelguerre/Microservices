@@ -13,22 +13,22 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Extensions
 	{
 		private static object entityOrder;
 
-		public static OrderModel ToOrder(this Domain.Aggregates.Orders.Order entityOrder)
+		public static OrderModel ToOrderModel(this Domain.Aggregates.Orders.Order order)
 		{
-			var order = new OrderModel()
+			var model = new OrderModel()
 			{
-				OrderNumber = entityOrder.Id,
-				Name = entityOrder.Name,
-				Date = entityOrder.OrderDate,
-				Status = entityOrder.OrderStatus.Name,
-				Total = entityOrder.GetTotal(),
-				City = entityOrder.Address.City,
-				Country = entityOrder.Address.Country,
-				Street = entityOrder.Address.Street,
-				ZipCode = entityOrder.Address.ZipCode
+				OrderNumber = order.Id,
+				Name = order.Name,
+				Date = order.OrderDate,
+				Status = order.OrderStatus.Name,
+				Total = order.GetTotal(),
+				City = order.Address.City,
+				Country = order.Address.Country,
+				Street = order.Address.Street,
+				ZipCode = order.Address.ZipCode
 			};
 
-			foreach (var o in entityOrder.OrderItems)
+			foreach (var o in order.OrderItems)
 			{
 				var orderitem = new OrderItemModel
 				{
@@ -37,16 +37,16 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Extensions
 					UnitPrice = o.GetUnitPrice(),
 				};
 
-				order.Total += o.GetUnits() * o.GetUnitPrice();
-				order.OrderItems.Add(orderitem);
+				model.Total += o.GetUnits() * o.GetUnitPrice();
+				model.OrderItems.Add(orderitem);
 			}
 
-			return order;
+			return model;
 		}
 
-		public static IEnumerable<OrderItemModel> ToOrderItems(this IEnumerable<Domain.Aggregates.Orders.OrderItem> entityOrderItems)
+		public static IEnumerable<OrderItemModel> ToOrderItems(this IEnumerable<Domain.Aggregates.Orders.OrderItem> orderItems)
 		{
-			foreach (var item in entityOrderItems)
+			foreach (var item in orderItems)
 			{
 				yield return item.ToOrderItem();
 			}
@@ -70,11 +70,21 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Extensions
 			var order = new Order(model.UserId, model.UserName, address, model.CardTypeId, model.CardNumber, model.CardHolderName, model.CardExpiration);
 
 			foreach (var o in model.OrderItems)
-			{				
+			{
 				order.AddOrderItem(o.ProductId, o.ProductName, o.UnitPrice, o.Discount, o.Units);
 			}
 
 			return order;
+		}
+
+		public static CustomerModel ToCustomerModel(this Domain.Aggregates.Customers.Customer customer)
+		{
+			var model = new CustomerModel();
+
+
+			// TODO: Complete mapping
+
+			return model;
 		}
 	}
 }

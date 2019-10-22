@@ -38,7 +38,7 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Queries
 			var pagedOrders = new List<OrderModel>();
 			foreach (var eo in ordersEntity)
 			{
-				pagedOrders.Add(eo.ToOrder());
+				pagedOrders.Add(eo.ToOrderModel());
 			}
 
 			return new PagedItemsViewModel<OrderModel>(request.PageIndex, request.PageSize, totalItems, pagedOrders.AsEnumerable());
