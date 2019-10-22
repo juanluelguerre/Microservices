@@ -1,5 +1,6 @@
 ﻿using ElGuerre.Microservices.Ordering.Api.Application.Extensions;
 using ElGuerre.Microservices.Ordering.Api.Application.Queries;
+using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Customers;
 using ElGuerre.Microservices.Ordering.Api.Domain.Aggregates.Orders;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -14,33 +15,27 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Commands
 	public class OrderSetToBilledCommandHandler : IRequestHandler<OrderSetToBilledCommand, bool>
 	{
 		private readonly ILogger _logger;
-		private readonly IOrderRepository _repository;
-		private readonly IMediator _mediator;
+		private readonly IOrderRepository _orderRepository;
+		private readonly IOrderQuery _orderQuery;
 
-		public OrderSetToBilledCommandHandler(ILogger<OrderSetToBilledCommandHandler> logger, IMediator mediator, IOrderRepository repository)
+		public OrderSetToBilledCommandHandler(
+			ILogger<OrderSetToBilledCommandHandler> logger, 
+			IOrderQuery orderQuery, 
+			IOrderRepository orderRepository)
 		{
 			_logger = logger;
-			_mediator = mediator;
-			_repository = repository;			
+			_orderQuery = orderQuery;
+			_orderRepository = orderRepository;
 		}
 
 		public async Task<bool> Handle(OrderSetToBilledCommand command, CancellationToken cancellationToken)
 		{
 			_logger.LogInformation($"Handle({nameof(OrderSetToBilledCommandHandler)}) -> {command}");
 
-
-			// TODO: Review to avoid two calls to MediatR !!!!
-			// 1) From Saga
-			// 2) To Find Order in DB 
-
-		
-
-			var commandQuery = new OrderByIdQuery(command.OrderId);
-			var model = await _mediator.Send(commandQuery);
-			var orderToUpdate = model.ToOrder();
+			var orderToUpdate = await _orderQuery.FindByIdAsync(command.OrderId);
 			orderToUpdate.SetPaidStatus();
 
-			return await _repository.UnitOfWork.SaveEntitiesAsync(cancellationToken);			
+			return await _orderRepository.UnitOfWork.SaveEntitiesAsync(cancellationToken);
 		}
 	}
 }

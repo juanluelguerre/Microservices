@@ -29,19 +29,19 @@ namespace ElGuerre.Microservices.Ordering.Api.Application.Queries
 			var totalItems = await _dbContext.Orders
 				.LongCountAsync();
 
-			var ordersEntity = await _dbContext.Orders
+			var orders = await _dbContext.Orders
 				.OrderBy(c => c.Name)
 				.Skip(request.PageSize * (request.PageIndex - 1))
 				.Take(request.PageSize)
 				.ToListAsync();
 
-			var pagedOrders = new List<OrderModel>();
-			foreach (var eo in ordersEntity)
+			var model = new List<OrderModel>();
+			foreach (var eo in orders)
 			{
-				pagedOrders.Add(eo.ToOrderModel());
+				model.Add(eo.ToOrderModel());
 			}
 
-			return new PagedItemsViewModel<OrderModel>(request.PageIndex, request.PageSize, totalItems, pagedOrders.AsEnumerable());
+			return new PagedItemsViewModel<OrderModel>(request.PageIndex, request.PageSize, totalItems, model.AsEnumerable());
 		}
 	}
 }
